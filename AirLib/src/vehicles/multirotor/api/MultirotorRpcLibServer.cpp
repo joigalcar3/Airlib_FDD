@@ -61,7 +61,7 @@ MultirotorRpcLibServer::MultirotorRpcLibServer(ApiProvider* api_provider, string
 
     // Methods related to the Camera data gathering
     (static_cast<rpc::server*>(getServer()))->
-        bind("setCameraActivation", [&](bool activation, int sample_rate, const std::vector<MultirotorRpcLibAdaptors::ImageRequest>& request_adapter, const std::string& vehicle_name) -> void {
+        bind("setCameraActivation", [&](bool activation, float sample_rate, const std::vector<MultirotorRpcLibAdaptors::ImageRequest>& request_adapter, const std::string& vehicle_name) -> void {
         getVehicleApi(vehicle_name)->setCameraActivation(activation, sample_rate, MultirotorRpcLibAdaptors::ImageRequest::to(request_adapter), getVehicleSimApi(vehicle_name));
             });
 
@@ -77,7 +77,7 @@ MultirotorRpcLibServer::MultirotorRpcLibServer(ApiProvider* api_provider, string
 
     // Methods related to the IMU data gathering
     (static_cast<rpc::server*>(getServer()))->
-        bind("setImuActivation", [&](bool activation, int sample_rate, const std::string& vehicle_name) -> void {
+        bind("setImuActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
         getVehicleApi(vehicle_name)->setImuActivation(activation, sample_rate);
             });
 
@@ -93,7 +93,7 @@ MultirotorRpcLibServer::MultirotorRpcLibServer(ApiProvider* api_provider, string
 
     // Methods related to the barometer data gathering
     (static_cast<rpc::server*>(getServer()))->
-        bind("setBarometerActivation", [&](bool activation, int sample_rate, const std::string& vehicle_name) -> void {
+        bind("setBarometerActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
         getVehicleApi(vehicle_name)->setBarometerActivation(activation, sample_rate);
             });
 
@@ -109,7 +109,7 @@ MultirotorRpcLibServer::MultirotorRpcLibServer(ApiProvider* api_provider, string
 
     // Methods related to the magnetometer data gathering
     (static_cast<rpc::server*>(getServer()))->
-        bind("setMagnetometerActivation", [&](bool activation, int sample_rate, const std::string& vehicle_name) -> void {
+        bind("setMagnetometerActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
         getVehicleApi(vehicle_name)->setMagnetometerActivation(activation, sample_rate);
             });
 
@@ -125,7 +125,7 @@ MultirotorRpcLibServer::MultirotorRpcLibServer(ApiProvider* api_provider, string
 
     // Methods related to the GPS data gathering
     (static_cast<rpc::server*>(getServer()))->
-        bind("setGPSActivation", [&](bool activation, int sample_rate, const std::string& vehicle_name) -> void {
+        bind("setGPSActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
         getVehicleApi(vehicle_name)->setGPSActivation(activation, sample_rate);
             });
 

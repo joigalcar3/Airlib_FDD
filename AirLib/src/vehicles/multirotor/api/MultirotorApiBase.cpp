@@ -82,7 +82,7 @@ bool MultirotorApiBase::dummyprinter(float numerito)
 }
 
 // Methods related to the IMU data gathering
-void MultirotorApiBase::setCameraActivation(bool activation, int sample_rate, const std::vector<ImageCaptureBase::ImageRequest>& request, VehicleSimApiBase* const& api)
+void MultirotorApiBase::setCameraActivation(bool activation, float sample_rate, const std::vector<ImageCaptureBase::ImageRequest>& request, VehicleSimApiBase* const& api)
 {
     setCameraAct(activation, sample_rate, request, api);
 }
@@ -98,7 +98,7 @@ void MultirotorApiBase::saveCameraStoredData(std::string path)
 }
 
 // Methods related to the IMU data gathering
-void MultirotorApiBase::setImuActivation(bool activation, int sample_rate)
+void MultirotorApiBase::setImuActivation(bool activation, float sample_rate)
 {
     setIMUAct(activation, sample_rate);
 }
@@ -146,7 +146,7 @@ IMUStoredData MultirotorApiBase::getImuStoredDataVec()
 }
 
 // Methods related to the barometer data gathering
-void MultirotorApiBase::setBarometerActivation(bool activation, int sample_rate)
+void MultirotorApiBase::setBarometerActivation(bool activation, float sample_rate)
 {
     setBarometerAct(activation, sample_rate);
 }
@@ -177,7 +177,7 @@ BarometerStoredData MultirotorApiBase::getBarometerStoredDataVec()
 }
 
 // Methods related to the barometer data gathering
-void MultirotorApiBase::setMagnetometerActivation(bool activation, int sample_rate)
+void MultirotorApiBase::setMagnetometerActivation(bool activation, float sample_rate)
 {
     setMagnetometerAct(activation, sample_rate);
 }
@@ -243,7 +243,7 @@ MagnetometerStoredData MultirotorApiBase::getMagnetometerStoredDataVec()
 }
 
 // Methods related to the GPS data gathering
-void MultirotorApiBase::setGPSActivation(bool activation, int sample_rate)
+void MultirotorApiBase::setGPSActivation(bool activation, float sample_rate)
 {
     setGPSAct(activation, sample_rate);
 }

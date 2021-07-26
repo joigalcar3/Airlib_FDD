@@ -69,6 +69,13 @@ public:
     }
 
     //below APIs are used by FastPhysicsEngine
+    //virtual real_T getActuation(unsigned int actuator_index, std::mutex& mutexito)
+    //{
+    //    unused(actuator_index);
+    //    unused(mutexito);
+    //    throw VehicleCommandNotImplementedException("getActuation API is not supported for this vehicle");
+    //}
+
     virtual real_T getActuation(unsigned int actuator_index)
     {
         unused(actuator_index);
@@ -81,7 +88,7 @@ public:
         throw VehicleCommandNotImplementedException("storeCameraData API is not supported for this vehicle");
     }
 
-    virtual void setCameraAct(bool activation, int sample_rate, const std::vector<ImageCaptureBase::ImageRequest>& request, VehicleSimApiBase* const& api)
+    virtual void setCameraAct(bool activation, float sample_rate, const std::vector<ImageCaptureBase::ImageRequest>& request, VehicleSimApiBase* const& api)
     {
         unused(activation);
         unused(sample_rate);
@@ -107,7 +114,7 @@ public:
         throw VehicleCommandNotImplementedException("storeIMUData API is not supported for this vehicle");
     }
 
-    virtual void setIMUAct(bool activation, int sample_rate)
+    virtual void setIMUAct(bool activation, float sample_rate)
     {
         unused(activation);
         unused(sample_rate);
@@ -131,7 +138,7 @@ public:
         throw VehicleCommandNotImplementedException("storeBarometerData API is not supported for this vehicle");
     }
 
-    virtual void setBarometerAct(bool activation, int sample_rate)
+    virtual void setBarometerAct(bool activation, float sample_rate)
     {
         unused(activation);
         unused(sample_rate);
@@ -154,7 +161,7 @@ public:
         throw VehicleCommandNotImplementedException("storeMagnetometerData API is not supported for this vehicle");
     }
 
-    virtual void setMagnetometerAct(bool activation, int sample_rate)
+    virtual void setMagnetometerAct(bool activation, float sample_rate)
     {
         unused(activation);
         unused(sample_rate);
@@ -171,13 +178,13 @@ public:
         throw VehicleCommandNotImplementedException("getMagnetometerStoredData API is not supported for this vehicle");
     }
 
-    // Methods related to the Magnetometer data gathering
+    // Methods related to the GPS data gathering
     virtual void storeGPSData()
     {
         throw VehicleCommandNotImplementedException("storeGpsData API is not supported for this vehicle");
     }
 
-    virtual void setGPSAct(bool activation, int sample_rate)
+    virtual void setGPSAct(bool activation, float sample_rate)
     {
         unused(activation);
         unused(sample_rate);

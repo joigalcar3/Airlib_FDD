@@ -81,7 +81,7 @@ bool MultirotorRpcLibClient::dummyprinter(float numerito, const std::string& veh
 }
 
 // Methods related to the Camera data gathering
-void MultirotorRpcLibClient::setCameraActivation(bool activation, int sample_rate, vector<ImageCaptureBase::ImageRequest> request, const std::string& vehicle_name)
+void MultirotorRpcLibClient::setCameraActivation(bool activation, float sample_rate, vector<ImageCaptureBase::ImageRequest> request, const std::string& vehicle_name)
 {
     static_cast<rpc::client*>(getClient())->call("setCameraActivation", activation, sample_rate, MultirotorRpcLibAdaptors::ImageRequest::from(request), vehicle_name);
 }
@@ -97,7 +97,7 @@ void MultirotorRpcLibClient::saveCameraStoredData(const std::string& path, const
 }
 
 // Methods related to the IMU data gathering
-void MultirotorRpcLibClient::setImuActivation(bool activation, int sample_rate, const std::string& vehicle_name)
+void MultirotorRpcLibClient::setImuActivation(bool activation, float sample_rate, const std::string& vehicle_name)
 {
     static_cast<rpc::client*>(getClient())->call("setImuActivation", activation, sample_rate, vehicle_name);
 }
@@ -113,7 +113,7 @@ IMUStoredData MultirotorRpcLibClient::getImuStoredDataVec(const std::string& veh
 }
 
 // Methods related to the barometer data gathering
-void MultirotorRpcLibClient::setBarometerActivation(bool activation, int sample_rate, const std::string& vehicle_name)
+void MultirotorRpcLibClient::setBarometerActivation(bool activation, float sample_rate, const std::string& vehicle_name)
 {
     static_cast<rpc::client*>(getClient())->call("setBarometerActivation", activation, sample_rate, vehicle_name);
 }
@@ -129,7 +129,7 @@ BarometerStoredData MultirotorRpcLibClient::getBarometerStoredDataVec(const std:
 }
 
 // Methods related to the magnetometer data gathering
-void MultirotorRpcLibClient::setMagnetometerActivation(bool activation, int sample_rate, const std::string& vehicle_name)
+void MultirotorRpcLibClient::setMagnetometerActivation(bool activation, float sample_rate, const std::string& vehicle_name)
 {
     static_cast<rpc::client*>(getClient())->call("setMagnetometerActivation", activation, sample_rate, vehicle_name);
 }
@@ -145,7 +145,7 @@ MagnetometerStoredData MultirotorRpcLibClient::getMagnetometerStoredDataVec(cons
 }
 
 // Methods related to the GPS data gathering
-void MultirotorRpcLibClient::setGPSActivation(bool activation, int sample_rate, const std::string& vehicle_name)
+void MultirotorRpcLibClient::setGPSActivation(bool activation, float sample_rate, const std::string& vehicle_name)
 {
     static_cast<rpc::client*>(getClient())->call("setGPSActivation", activation, sample_rate, vehicle_name);
 }

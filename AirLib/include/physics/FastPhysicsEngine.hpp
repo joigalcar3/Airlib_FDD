@@ -104,6 +104,7 @@ namespace msr {
                 body.setWrench(next_wrench);
                 body.updateKinematics(next);
                 body.unlock();
+                body.collectCameraData();
 
 
                 //TODO: this is now being done in PawnSimApi::update. We need to re-think this sequence

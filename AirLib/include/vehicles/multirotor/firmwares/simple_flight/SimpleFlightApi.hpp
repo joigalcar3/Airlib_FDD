@@ -94,20 +94,37 @@ public: //VehicleApiBase implementation
     }
 
 public: //MultirotorApiBase implementation
+    //virtual real_T getActuation(unsigned int rotor_index, std::mutex& mutexito) override
+    //{
+    //    //unused(mutexito);
+    //    storeIMUData();
+    //    storeBarometerData();
+    //    storeMagnetometerData();
+    //    storeGPSData();
+
+    //    mutexito.unlock();
+    //    storeCameraData();
+    //    mutexito.lock();
+
+    //    auto control_signal_old = board_->getMotorControlSignal(rotor_index);
+    //    real_T control_signal;
+    //    if (locked_propeller[rotor_index] == true) {
+    //        control_signal = lock_coefficients[rotor_index];
+    //    }
+    //    else {
+    //        real_T prop_damage = propeller_damage_coefficients[rotor_index];
+    //        control_signal = control_signal_old * prop_damage;
+    //    }
+    //    return control_signal;
+    //}
+
     virtual real_T getActuation(unsigned int rotor_index) override
     {
-        //std::mutex mutex_local;
-        //mutex_local.lock();
-
         storeIMUData();
         storeBarometerData();
         storeMagnetometerData();
         storeGPSData();
-
-        //mutex_local.unlock();
-        storeCameraData();
-        //mutex_local.lock();
-
+        //storeCameraData();
         auto control_signal_old = board_->getMotorControlSignal(rotor_index);
         real_T control_signal;
         if (locked_propeller[rotor_index] == true) {
@@ -135,7 +152,7 @@ public: //MultirotorApiBase implementation
         }
     }
 
-    void setCameraAct(bool activation, int sample_rate, const std::vector<ImageCaptureBase::ImageRequest>& request, VehicleSimApiBase* const& api) override
+    void setCameraAct(bool activation, float sample_rate, const std::vector<ImageCaptureBase::ImageRequest>& request, VehicleSimApiBase* const& api) override
     {
         Camera_activate_store = activation;
         Camera_sample_rate = sample_rate;
@@ -170,7 +187,7 @@ public: //MultirotorApiBase implementation
         }
     }
 
-    void setIMUAct(bool activation, int sample_rate) override
+    void setIMUAct(bool activation, float sample_rate) override
     {
         IMU_activate_store = activation;
         IMU_sample_rate = sample_rate;
@@ -202,7 +219,7 @@ public: //MultirotorApiBase implementation
         }
     }
 
-    void setBarometerAct(bool activation, int sample_rate) override
+    void setBarometerAct(bool activation, float sample_rate) override
     {
         barometer_activate_store = activation;
         barometer_sample_rate = sample_rate;
@@ -234,7 +251,7 @@ public: //MultirotorApiBase implementation
         }
     }
 
-    void setMagnetometerAct(bool activation, int sample_rate) override
+    void setMagnetometerAct(bool activation, float sample_rate) override
     {
         magnetometer_activate_store = activation;
         magnetometer_sample_rate = sample_rate;
@@ -266,7 +283,7 @@ public: //MultirotorApiBase implementation
         }
     }
 
-    void setGPSAct(bool activation, int sample_rate) override
+    void setGPSAct(bool activation, float sample_rate) override
     {
         GPS_activate_store = activation;
         GPS_sample_rate = sample_rate;
@@ -669,25 +686,25 @@ private:
 
     // Variables related to IMU data gathering
     bool IMU_activate_store = false;
-    int IMU_sample_rate = 1000;
+    float IMU_sample_rate = 1000;
     uint64_t IMU_time_old = 0;
     std::vector<msr::airlib::ImuBase::Output> IMU_data;
 
     // Variables related to barometer data gathering
     bool barometer_activate_store = false;
-    int barometer_sample_rate = 50;
+    float barometer_sample_rate = 50;
     uint64_t barometer_time_old = 0;
     std::vector<msr::airlib::BarometerBase::Output> barometer_data;
 
     // Variables related to magnetometer data gathering
     bool magnetometer_activate_store = false;
-    int magnetometer_sample_rate = 50;
+    float magnetometer_sample_rate = 50;
     uint64_t magnetometer_time_old = 0;
     std::vector<msr::airlib::MagnetometerBase::Output> magnetometer_data;
 
     // Variables related to GPS data gathering
     bool GPS_activate_store = false;
-    int GPS_sample_rate = 50;
+    float GPS_sample_rate = 50;
     uint64_t GPS_time_old = 0;
     std::vector<msr::airlib::GpsBase::Output> GPS_data;
 

@@ -25,27 +25,27 @@ public:
     bool dummyprinter(float numerito, const std::string& vehicle_name = "");
 
     // Methods related to the Camera data gathering
-    void setCameraActivation(bool activation, int sample_rate, vector<ImageCaptureBase::ImageRequest> request, const std::string& vehicle_name = "");
+    void setCameraActivation(bool activation, float sample_rate, vector<ImageCaptureBase::ImageRequest> request, const std::string& vehicle_name = "");
     void cleanCameraStoredData(const std::string& vehicle_name = "");
     void saveCameraStoredData(const std::string& path = "", const std::string& vehicle_name = "");
 
     // Methods related to the IMU data gathering
-    void setImuActivation(bool activation, int sample_rate, const std::string& vehicle_name = "");
+    void setImuActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
     void cleanImuStoredData(const std::string& vehicle_name = "");
     IMUStoredData getImuStoredDataVec(const std::string& vehicle_name = "");
 
     // Methods related to the barometer data gathering
-    void setBarometerActivation(bool activation, int sample_rate, const std::string& vehicle_name = "");
+    void setBarometerActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
     void cleanBarometerStoredData(const std::string& vehicle_name = "");
     BarometerStoredData getBarometerStoredDataVec(const std::string& vehicle_name = "");
 
     // Methods related to the magnetometer data gathering
-    void setMagnetometerActivation(bool activation, int sample_rate, const std::string& vehicle_name = "");
+    void setMagnetometerActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
     void cleanMagnetometerStoredData(const std::string& vehicle_name = "");
     MagnetometerStoredData getMagnetometerStoredDataVec(const std::string& vehicle_name = "");
 
     // Methods related to the GPS data gathering
-    void setGPSActivation(bool activation, int sample_rate, const std::string& vehicle_name = "");
+    void setGPSActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
     void cleanGPSStoredData(const std::string& vehicle_name = "");
     GPSStoredData getGPSStoredDataVec(const std::string& vehicle_name = "");
 
