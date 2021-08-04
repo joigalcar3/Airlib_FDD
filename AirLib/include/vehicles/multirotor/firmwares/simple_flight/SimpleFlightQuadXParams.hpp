@@ -34,7 +34,8 @@ protected:
         // Use connection_info_.model for the model name, see Px4MultiRotorParams for example
 
         // Only Generic for now
-        setupFrameGenericQuad(params);
+        //setupFrameGenericQuad(params);
+        setupFrameBB2(params);
     }
 
     virtual const SensorFactory* getSensorFactory() const override

@@ -66,6 +66,11 @@ public: //interface
         kinematics_->update();
     }
 
+    virtual std::vector<real_T> getPWMrotors()
+    {
+        throw std::runtime_error("getPWMrotors API is not supported for this vehicle");
+    }
+
     virtual void collectCameraData()
     {}
 

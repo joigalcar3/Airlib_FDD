@@ -80,6 +80,15 @@ public:
         }
     }
 
+    std::vector<real_T> getPWMrotors() override
+    {
+        std::vector<real_T> PWMs;
+        for (uint rotor_index = 0; rotor_index < rotors_.size(); ++rotor_index) {
+            PWMs.push_back(rotors_.at(rotor_index).getControlSignal());
+        }
+        return PWMs;
+    }
+
     virtual void collectCameraData()
     {
         vehicle_api_->storeCameraData();

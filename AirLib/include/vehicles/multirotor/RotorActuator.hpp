@@ -59,6 +59,12 @@ public: //methods
         control_signal_filter_.setInput(Utils::clip(control_signal, 0.0f, 1.0f));
     }
 
+    real_T getControlSignal()
+    {
+        int a = 1;
+        return control_signal_filter_.getOutput();
+    }
+
     Output getOutput() const
     {
         return output_;
