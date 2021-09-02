@@ -81,7 +81,7 @@ bool MultirotorApiBase::dummyprinter(float numerito)
         return false;
 }
 
-// Methods related to the IMU data gathering
+// Methods related to the camera data gathering
 void MultirotorApiBase::setCameraActivation(bool activation, float sample_rate, const std::vector<ImageCaptureBase::ImageRequest>& request, VehicleSimApiBase* const& api)
 {
     setCameraAct(activation, sample_rate, request, api);
@@ -142,6 +142,66 @@ IMUStoredData MultirotorApiBase::getImuStoredDataVec()
 
     IMUStoredData dc = IMUStoredData(timestamps, orientations_w, orientations_x, orientations_y, orientations_z, angular_velocity_x,
         angular_velocity_y, angular_velocity_z, linear_acceleration_x, linear_acceleration_y, linear_acceleration_z);
+    return dc;
+}
+
+// Methods related to the PWMs data gathering
+void MultirotorApiBase::setPWMActivation(bool activation, float sample_rate)
+{
+    setPWMAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanPWMStoredData()
+{
+    cleanPWMSD();
+}
+
+PWMStoredData MultirotorApiBase::getPWMStoredDataVec()
+{
+    std::vector<std::vector<float>> PWM_data = getPWMStoredData();
+    std::vector<float> PWM_1;
+    std::vector<float> PWM_2;
+    std::vector<float> PWM_3;
+    std::vector<float> PWM_4;
+
+    for (int i = 0; i < PWM_data.size(); i++)
+    {
+        PWM_1.push_back(PWM_data[i][0]);
+        PWM_2.push_back(PWM_data[i][1]);
+        PWM_3.push_back(PWM_data[i][2]);
+        PWM_4.push_back(PWM_data[i][3]);
+    }
+
+    PWMStoredData dc = PWMStoredData(PWM_1, PWM_2, PWM_3, PWM_4);
+    return dc;
+}
+
+// Methods related to the ground truth position data gathering
+void MultirotorApiBase::setPositionActivation(bool activation, float sample_rate)
+{
+    setPositionAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanPositionStoredData()
+{
+    cleanPositionSD();
+}
+
+PositionStoredData MultirotorApiBase::getPositionStoredDataVec()
+{
+    std::vector<msr::airlib::Vector3r> position_data = getPositionStoredData();
+    std::vector<float> positions_x;
+    std::vector<float> positions_y;
+    std::vector<float> positions_z;
+
+    for (int i = 0; i < position_data.size(); i++)
+    {
+        positions_x.push_back(position_data[i].x());
+        positions_y.push_back(position_data[i].y());
+        positions_z.push_back(position_data[i].z());
+    }
+
+    PositionStoredData dc = PositionStoredData(positions_x, positions_y, positions_z);
     return dc;
 }
 

@@ -91,6 +91,38 @@ MultirotorRpcLibServer::MultirotorRpcLibServer(ApiProvider* api_provider, string
         return MultirotorRpcLibAdaptors::IMUStoredData(getVehicleApi(vehicle_name)->getImuStoredDataVec());
             });
 
+    // Methods related to the PWMs data gathering
+    (static_cast<rpc::server*>(getServer()))->
+        bind("setPwmActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->setPWMActivation(activation, sample_rate);
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("cleanPwmStoredData", [&](const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->cleanPWMStoredData();
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("getPwmStoredDataVec", [&](const std::string& vehicle_name) -> MultirotorRpcLibAdaptors::PWMStoredData {
+        return MultirotorRpcLibAdaptors::PWMStoredData(getVehicleApi(vehicle_name)->getPWMStoredDataVec());
+            });
+
+    // Methods related to the ground truth position data gathering
+    (static_cast<rpc::server*>(getServer()))->
+        bind("setPositionActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->setPositionActivation(activation, sample_rate);
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("cleanPositionStoredData", [&](const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->cleanPositionStoredData();
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("getPositionStoredDataVec", [&](const std::string& vehicle_name) -> MultirotorRpcLibAdaptors::PositionStoredData {
+        return MultirotorRpcLibAdaptors::PositionStoredData(getVehicleApi(vehicle_name)->getPositionStoredDataVec());
+            });
+
     // Methods related to the barometer data gathering
     (static_cast<rpc::server*>(getServer()))->
         bind("setBarometerActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {

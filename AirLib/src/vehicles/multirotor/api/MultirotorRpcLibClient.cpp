@@ -112,6 +112,38 @@ IMUStoredData MultirotorRpcLibClient::getImuStoredDataVec(const std::string& veh
     return static_cast<rpc::client*>(getClient())->call("getImuStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::IMUStoredData>().to();
 }
 
+// Methods related to the PWMs data gathering
+void MultirotorRpcLibClient::setPwmActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setPwmActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanPwmStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanPwmStoredData", vehicle_name);
+}
+
+PWMStoredData MultirotorRpcLibClient::getPwmStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getPwmStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::PWMStoredData>().to();
+}
+
+// Methods related to the ground truth position data gathering
+void MultirotorRpcLibClient::setPositionActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setPositionActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanPositionStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanPositionStoredData", vehicle_name);
+}
+
+PositionStoredData MultirotorRpcLibClient::getPositionStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getPositionStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::PositionStoredData>().to();
+}
+
 // Methods related to the barometer data gathering
 void MultirotorRpcLibClient::setBarometerActivation(bool activation, float sample_rate, const std::string& vehicle_name)
 {
