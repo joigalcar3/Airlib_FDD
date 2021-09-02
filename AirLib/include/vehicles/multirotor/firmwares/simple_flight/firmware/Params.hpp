@@ -92,7 +92,7 @@ public:
     } position_pid;
 
     struct VelocityPid {
-        const float kMinThrottle = std::min(1.0f, Params::min_armed_throttle() * 3.0f);
+        const float kMinThrottle = std::min(1.0f, Params::min_armed_throttle() * 0.5f);
         const float kMaxLimit = 6.0f; // m/s
         const float kP = 0.2f;
         const float kI = 2.0f;

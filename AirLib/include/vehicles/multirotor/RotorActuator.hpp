@@ -61,7 +61,6 @@ public: //methods
 
     real_T getControlSignal()
     {
-        int a = 1;
         return control_signal_filter_.getOutput();
     }
 

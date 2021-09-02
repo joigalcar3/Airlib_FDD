@@ -225,6 +225,56 @@ public:
         }
     };
 
+    struct PWMStoredData {
+        std::vector<float> PWM_1;
+        std::vector<float> PWM_2;
+        std::vector<float> PWM_3;
+        std::vector<float> PWM_4;
+
+        MSGPACK_DEFINE_MAP(PWM_1, PWM_2, PWM_3, PWM_4);
+
+        PWMStoredData()
+        {}
+
+        PWMStoredData(msr::airlib::PWMStoredData original)
+        {
+            PWM_1 = original.PWM_1;
+            PWM_2 = original.PWM_2;
+            PWM_3 = original.PWM_3;
+            PWM_4 = original.PWM_4;
+        }
+
+        msr::airlib::PWMStoredData to() const
+        {
+            msr::airlib::PWMStoredData d(PWM_1, PWM_2, PWM_3, PWM_4);
+            return d;
+        }
+    };
+
+    struct PositionStoredData {
+        std::vector<float> positions_x;
+        std::vector<float> positions_y;
+        std::vector<float> positions_z;
+
+        MSGPACK_DEFINE_MAP(positions_x, positions_y, positions_z);
+
+        PositionStoredData()
+        {}
+
+        PositionStoredData(msr::airlib::PositionStoredData original)
+        {
+            positions_x = original.positions_x;
+            positions_y = original.positions_y;
+            positions_z = original.positions_z;
+        }
+
+        msr::airlib::PositionStoredData to() const
+        {
+            msr::airlib::PositionStoredData d(positions_x, positions_y, positions_z);
+            return d;
+        }
+    };
+
     struct BarometerStoredData {
         std::vector<uint64_t> timestamps;
         std::vector<float> altitudes;

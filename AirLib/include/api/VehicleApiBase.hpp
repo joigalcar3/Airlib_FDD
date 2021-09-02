@@ -131,6 +131,52 @@ public:
         throw VehicleCommandNotImplementedException("getIMUStoredData API is not supported for this vehicle");
     }
 
+    // Methods related to the PWMs data gathering
+    virtual void storePWMData()
+    {
+        throw VehicleCommandNotImplementedException("storePWMData API is not supported for this vehicle");
+    }
+
+    virtual void setPWMAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setPWMAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanPWMSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanPWMSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getPWMStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getPWMStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the position data gathering
+    virtual void storePositionData()
+    {
+        throw VehicleCommandNotImplementedException("storePositionData API is not supported for this vehicle");
+    }
+
+    virtual void setPositionAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setPositionAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanPositionSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanPositionSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<msr::airlib::Vector3r> getPositionStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getPositionStoredData API is not supported for this vehicle");
+    }
+
     // Methods related to the barometer data gathering
 
     virtual void storeBarometerData()

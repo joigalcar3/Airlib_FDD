@@ -121,6 +121,8 @@ public: //MultirotorApiBase implementation
     virtual real_T getActuation(unsigned int rotor_index) override
     {
         storeIMUData();
+        storePWMData();
+        storePositionData();
         storeBarometerData();
         storeMagnetometerData();
         storeGPSData();
@@ -202,6 +204,76 @@ public: //MultirotorApiBase implementation
     std::vector<msr::airlib::ImuBase::Output> getIMUStoredData() override
     {
         return IMU_data;
+    }
+
+    // Methods related to the PWMs data gathering
+    void storePWMData() override
+    {
+        if (PWM_activate_store) {
+            PWMs[0] = board_->getMotorControlSignal(0);
+            PWMs[1] = board_->getMotorControlSignal(1);
+            PWMs[2] = board_->getMotorControlSignal(2);
+            PWMs[3] = board_->getMotorControlSignal(3);
+            std::vector<float> local_PWM_data = {PWMs[0], PWMs[1], PWMs[2], PWMs[3]};
+            auto local_IMU_data = getImuData("");
+            uint64_t time_new = local_IMU_data.time_stamp;
+            int PWM_threshold = UE4_second / PWM_sample_rate;
+            uint64_t time_threshold = PWM_time_old + PWM_threshold;
+            if (time_new >= time_threshold) {
+                PWM_time_old = time_new;
+                PWM_data.push_back(local_PWM_data);
+            }
+        }
+    }
+
+    void setPWMAct(bool activation, float sample_rate) override
+    {
+        PWM_activate_store = activation;
+        PWM_sample_rate = sample_rate;
+    }
+
+    void cleanPWMSD() override
+    {
+        PWM_activate_store = false;
+        PWM_data.clear();
+    }
+
+    std::vector<std::vector<float>> getPWMStoredData() override
+    {
+        return PWM_data;
+    }
+
+    // Methods related to the ground truth position data gathering
+    void storePositionData() override
+    {
+        if (position_activate_store) {
+            auto local_IMU_data = getImuData("");
+            auto local_position_data = getPosition();
+            uint64_t time_new = local_IMU_data.time_stamp;
+            int position_threshold = UE4_second / position_sample_rate;
+            uint64_t time_threshold = position_time_old + position_threshold;
+            if (time_new >= time_threshold) {
+                position_time_old = time_new;
+                position_data.push_back(local_position_data);
+            }
+        }
+    }
+
+    void setPositionAct(bool activation, float sample_rate) override
+    {
+        position_activate_store = activation;
+        position_sample_rate = sample_rate;
+    }
+
+    void cleanPositionSD() override
+    {
+        position_activate_store = false;
+        position_data.clear();
+    }
+
+    std::vector<msr::airlib::Vector3r> getPositionStoredData() override
+    {
+        return position_data;
     }
 
     // Methods related to the barometer data gathering
@@ -689,6 +761,18 @@ private:
     float IMU_sample_rate = 1000;
     uint64_t IMU_time_old = 0;
     std::vector<msr::airlib::ImuBase::Output> IMU_data;
+
+    // Variables related to PWMs data gathering
+    bool PWM_activate_store = false;
+    float PWM_sample_rate = 1000;
+    uint64_t PWM_time_old = 0;
+    std::vector<std::vector<float>> PWM_data;
+
+    // Variables related to ground truth position data gathering
+    bool position_activate_store = false;
+    float position_sample_rate = 1000;
+    uint64_t position_time_old = 0;
+    std::vector<msr::airlib::Vector3r> position_data;
 
     // Variables related to barometer data gathering
     bool barometer_activate_store = false;

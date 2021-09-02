@@ -34,6 +34,16 @@ public:
     void cleanImuStoredData(const std::string& vehicle_name = "");
     IMUStoredData getImuStoredDataVec(const std::string& vehicle_name = "");
 
+    // Methods related to the PWM data gathering
+    void setPwmActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanPwmStoredData(const std::string& vehicle_name = "");
+    PWMStoredData getPwmStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the ground truth position data gathering
+    void setPositionActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanPositionStoredData(const std::string& vehicle_name = "");
+    PositionStoredData getPositionStoredDataVec(const std::string& vehicle_name = "");
+
     // Methods related to the barometer data gathering
     void setBarometerActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
     void cleanBarometerStoredData(const std::string& vehicle_name = "");

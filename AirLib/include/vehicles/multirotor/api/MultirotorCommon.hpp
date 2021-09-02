@@ -198,6 +198,40 @@ struct IMUStoredData
     }
 };
 
+struct PositionStoredData
+{
+    std::vector<float> positions_x;
+    std::vector<float> positions_y;
+    std::vector<float> positions_z;
+    PositionStoredData()
+    {}
+
+    PositionStoredData(const std::vector<float>& px, const std::vector<float>& py, const std::vector<float>& pz)
+    {
+        positions_x = px;
+        positions_y = py;
+        positions_z = pz;
+    }
+};
+
+struct PWMStoredData
+{
+    std::vector<float> PWM_1;
+    std::vector<float> PWM_2;
+    std::vector<float> PWM_3;
+    std::vector<float> PWM_4;
+    PWMStoredData()
+    {}
+
+    PWMStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3, const std::vector<float>& p4)
+    {
+        PWM_1 = p1;
+        PWM_2 = p2;
+        PWM_3 = p3;
+        PWM_4 = p4;
+    }
+};
+
 struct BarometerStoredData
 {
     std::vector<uint64_t> timestamps;

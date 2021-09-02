@@ -97,6 +97,12 @@ public: //these APIs uses above low level APIs
     virtual void setImuActivation(bool activation, float sample_rate);
     virtual void cleanImuStoredData();
     virtual IMUStoredData getImuStoredDataVec();
+    virtual void setPWMActivation(bool activation, float sample_rate);
+    virtual void cleanPWMStoredData();
+    virtual PWMStoredData getPWMStoredDataVec();
+    virtual void setPositionActivation(bool activation, float sample_rate);
+    virtual void cleanPositionStoredData();
+    virtual PositionStoredData getPositionStoredDataVec();
     virtual void setBarometerActivation(bool activation, float sample_rate);
     virtual void cleanBarometerStoredData();
     virtual BarometerStoredData getBarometerStoredDataVec();

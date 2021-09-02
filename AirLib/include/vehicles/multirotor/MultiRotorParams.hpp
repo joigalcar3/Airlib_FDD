@@ -137,6 +137,38 @@ protected: //static utility functions for derived classes to use
             throw std::invalid_argument("Rotor count other than 4 is not supported by this method!");
     }
 
+    static void initializeRotorQuadBB2(vector<RotorPose>& rotor_poses /* the result we are building */,
+        uint rotor_count /* must be 4 */,
+        real_T arm_lengths[],
+        real_T rotor_z /* z relative to center of gravity */)
+    {
+        Vector3r unit_z(0, 0, -1);  //NED frame
+        if (rotor_count == 4) {
+            rotor_poses.clear();
+
+            /* Note: rotor_poses are built in this order:
+                 x-axis
+            (0)  |   (1)
+                 |
+            -------------- y-axis
+                 |
+            (3)  |   (2)
+            */
+            // vectors below are rotated according to NED left hand rule (so the vectors are rotated counter clockwise).
+            Quaternionr quadx_rot(AngleAxisr(0.9204, unit_z));
+            rotor_poses.emplace_back(VectorMath::rotateVector(Vector3r(arm_lengths[0], 0, rotor_z), quadx_rot, true),
+                unit_z, RotorTurningDirection::RotorTurningDirectionCCW);
+            rotor_poses.emplace_back(VectorMath::rotateVector(Vector3r(0, arm_lengths[1], rotor_z), quadx_rot, true),
+                unit_z, RotorTurningDirection::RotorTurningDirectionCW);
+            rotor_poses.emplace_back(VectorMath::rotateVector(Vector3r(-arm_lengths[2], 0, rotor_z), quadx_rot, true),
+                unit_z, RotorTurningDirection::RotorTurningDirectionCCW);
+            rotor_poses.emplace_back(VectorMath::rotateVector(Vector3r(0, -arm_lengths[3], rotor_z), quadx_rot, true),
+                unit_z, RotorTurningDirection::RotorTurningDirectionCW);
+        }
+        else
+            throw std::invalid_argument("Rotor count other than 4 is not supported by this method!");
+    }
+
     static void initializeRotorHexX(vector<RotorPose>& rotor_poses /* the result we are building */,
         uint rotor_count /* must be 6 */,
         real_T arm_lengths[],
@@ -240,7 +272,7 @@ protected: //static utility functions for derived classes to use
         real_T rotor_z = 0;
 
         //computer rotor poses
-        initializeRotorQuadX(params.rotor_poses, params.rotor_count, arm_lengths.data(), rotor_z);
+        initializeRotorQuadBB2(params.rotor_poses, params.rotor_count, arm_lengths.data(), rotor_z);
 
         //compute inertia matrix
         params.inertia = Matrix3x3r::Zero();

@@ -5,6 +5,7 @@
 #define airsim_core_FastPhysicsEngine_hpp
 
 #include "common/FirstOrderFilter.hpp"
+#include <numeric>
 
 #include "common/Common.hpp"
 #include "physics/PhysicsEngineBase.hpp"
@@ -27,16 +28,16 @@ namespace msr {
             FastPhysicsEngine(bool enable_ground_lock = true, Vector3r wind = Vector3r::Zero())
                 : enable_ground_lock_(enable_ground_lock), wind_(wind)
             {
-                real_T control_signal_filter_tc = 0.025f;    //time constant for low pass filter
-                control_signal_filter_w1.initialize(control_signal_filter_tc, 0, 0);
-                control_signal_filter_w2.initialize(control_signal_filter_tc, 0, 0);
-                control_signal_filter_w3.initialize(control_signal_filter_tc, 0, 0);
-                control_signal_filter_w4.initialize(control_signal_filter_tc, 0, 0);
+                //real_T control_signal_filter_tc = 0.025f;    //time constant for low pass filter
+                //control_signal_filter_w1.initialize(control_signal_filter_tc, 0, 0);
+                //control_signal_filter_w2.initialize(control_signal_filter_tc, 0, 0);
+                //control_signal_filter_w3.initialize(control_signal_filter_tc, 0, 0);
+                //control_signal_filter_w4.initialize(control_signal_filter_tc, 0, 0);
 
-                control_signal_filter_w1.reset();
-                control_signal_filter_w2.reset();
-                control_signal_filter_w3.reset();
-                control_signal_filter_w4.reset();
+                //control_signal_filter_w1.reset();
+                //control_signal_filter_w2.reset();
+                //control_signal_filter_w3.reset();
+                //control_signal_filter_w4.reset();
 
             }
 
@@ -416,473 +417,123 @@ namespace msr {
                 return y_new;
             }
 
-            static inline double computeSquare(double x)
-            {
-                return x * x;
-            }
-
-            static inline double computeCube(double x)
-            {
-                return x * x * x;
-            }
-
-            static inline double computeQuartic(double x)
-            {
-                return x * x * x * x;
-            }
-
-            static inline double computeQuintic(double x)
-            {
-                return x * x * x * x * x;
-            }
-
             // Function that creates a 3rd degree polynomial with 3 parameters
-            static std::vector<real_T> P33(std::vector<real_T> x1, std::vector<real_T> x2, std::vector<real_T> x3 = std::vector<real_T>(), std::vector<real_T> U = std::vector<real_T>())
+            static std::vector<real_T> P33(real_T x1, real_T x2, real_T x3 = 1, real_T U = 1)
             {
-                if (x3.size() == 0)
-                {
-                    for (int i = 0; i < x1.size(); i++)
-                    {
-                        x3.push_back(1);
-                    }
-                }
-                if (U.size() == 0)
-                {
-                    for (int i = 0; i < x1.size(); i++)
-                    {
-                        U.push_back(1);
-                    }
-                }
-                std::vector<real_T> initial(x1.size(), 1);
-                std::vector<real_T> x12;
-                std::vector<real_T> x13;
-                std::vector<real_T> x22;
-                std::vector<real_T> x23;
-                std::vector<real_T> x32;
-                std::vector<real_T> x33;
-
-                std::vector<real_T> x1_x2;
-                std::vector<real_T> x2_x3;
-                std::vector<real_T> x3_x1;
-
-                std::vector<real_T> x1_x22;
-                std::vector<real_T> x1_x32;
-                std::vector<real_T> x12_x2;
-                std::vector<real_T> x12_x3;
-                std::vector<real_T> x22_x3;
-                std::vector<real_T> x2_x32;
-                std::vector<real_T> x1_x2_x3;
+                real_T A1 = U;
+                real_T A2 = x1 * U;
+                real_T A3 = x2 * U;
+                real_T A4 = x3 * U;
+                real_T A5 = x1*x1 * U;
+                real_T A6 = x2*x2 * U;
+                real_T A7 = x3*x3 * U;
+                real_T A8 = x1*x2 * U;
+                real_T A9 = x2*x3 * U;
+                real_T A10 = x3*x1 * U;
+                real_T A11 = x1*x1*x1 * U;
+                real_T A12 = x2*x2*x2 * U;
+                real_T A13 = x3*x3*x3 * U;
+                real_T A14 = x1*x2*x2 * U;
+                real_T A15 = x1*x3*x3 * U;
+                real_T A16 = x1*x1*x2 * U;
+                real_T A17 = x1*x1*x3 * U;
+                real_T A18 = x2*x2*x3 * U;
+                real_T A19 = x2*x3*x3 * U;
+                real_T A20 = x1*x2*x3 * U;
 
 
-                std::transform(x1.begin(), x1.end(), std::back_inserter(x12), computeSquare);
-                std::transform(x1.begin(), x1.end(), std::back_inserter(x13), computeCube);
-                std::transform(x2.begin(), x2.end(), std::back_inserter(x22), computeSquare);
-                std::transform(x2.begin(), x2.end(), std::back_inserter(x23), computeCube);
-                std::transform(x3.begin(), x3.end(), std::back_inserter(x32), computeSquare);
-                std::transform(x3.begin(), x3.end(), std::back_inserter(x33), computeCube);
-
-                std::transform(x1.begin(), x1.end(), x2.begin(), std::back_inserter(x1_x2), std::multiplies<real_T>());
-                std::transform(x2.begin(), x2.end(), x3.begin(), std::back_inserter(x2_x3), std::multiplies<real_T>());
-                std::transform(x3.begin(), x3.end(), x1.begin(), std::back_inserter(x3_x1), std::multiplies<real_T>());
-
-                std::transform(x1.begin(), x1.end(), x22.begin(), std::back_inserter(x1_x22), std::multiplies<real_T>());
-                std::transform(x1.begin(), x1.end(), x32.begin(), std::back_inserter(x1_x32), std::multiplies<real_T>());
-                std::transform(x12.begin(), x12.end(), x2.begin(), std::back_inserter(x12_x2), std::multiplies<real_T>());
-                std::transform(x12.begin(), x12.end(), x3.begin(), std::back_inserter(x12_x3), std::multiplies<real_T>());
-                std::transform(x22.begin(), x22.end(), x3.begin(), std::back_inserter(x22_x3), std::multiplies<real_T>());
-                std::transform(x2.begin(), x2.end(), x32.begin(), std::back_inserter(x2_x32), std::multiplies<real_T>());
-                std::transform(x1_x2.begin(), x1_x2.end(), x3.begin(), std::back_inserter(x1_x2_x3), std::multiplies<real_T>());
-
-
-                std::vector<real_T> A1;
-                std::transform(initial.begin(), initial.end(), U.begin(), std::back_inserter(A1), std::multiplies<real_T>());
-                std::vector<real_T> A2;
-                std::transform(x1.begin(), x1.end(), U.begin(), std::back_inserter(A2), std::multiplies<real_T>());
-                std::vector<real_T> A3;
-                std::transform(x2.begin(), x2.end(), U.begin(), std::back_inserter(A3), std::multiplies<real_T>());
-                std::vector<real_T> A4;
-                std::transform(x3.begin(), x3.end(), U.begin(), std::back_inserter(A4), std::multiplies<real_T>());
-                std::vector<real_T> A5;
-                std::transform(x12.begin(), x12.end(), U.begin(), std::back_inserter(A5), std::multiplies<real_T>());
-                std::vector<real_T> A6;
-                std::transform(x22.begin(), x22.end(), U.begin(), std::back_inserter(A6), std::multiplies<real_T>());
-                std::vector<real_T> A7;
-                std::transform(x32.begin(), x32.end(), U.begin(), std::back_inserter(A7), std::multiplies<real_T>());
-                std::vector<real_T> A8;
-                std::transform(x1_x2.begin(), x1_x2.end(), U.begin(), std::back_inserter(A8), std::multiplies<real_T>());
-                std::vector<real_T> A9;
-                std::transform(x2_x3.begin(), x2_x3.end(), U.begin(), std::back_inserter(A9), std::multiplies<real_T>());
-                std::vector<real_T> A10;
-                std::transform(x3_x1.begin(), x3_x1.end(), U.begin(), std::back_inserter(A10), std::multiplies<real_T>());
-                std::vector<real_T> A11;
-                std::transform(x13.begin(), x13.end(), U.begin(), std::back_inserter(A11), std::multiplies<real_T>());
-                std::vector<real_T> A12;
-                std::transform(x23.begin(), x23.end(), U.begin(), std::back_inserter(A12), std::multiplies<real_T>());
-                std::vector<real_T> A13;
-                std::transform(x33.begin(), x33.end(), U.begin(), std::back_inserter(A13), std::multiplies<real_T>());
-                std::vector<real_T> A14;
-                std::transform(x1_x22.begin(), x1_x22.end(), U.begin(), std::back_inserter(A14), std::multiplies<real_T>());
-                std::vector<real_T> A15;
-                std::transform(x1_x32.begin(), x1_x32.end(), U.begin(), std::back_inserter(A15), std::multiplies<real_T>());
-                std::vector<real_T> A16;
-                std::transform(x12_x2.begin(), x12_x2.end(), U.begin(), std::back_inserter(A16), std::multiplies<real_T>());
-                std::vector<real_T> A17;
-                std::transform(x12_x3.begin(), x12_x3.end(), U.begin(), std::back_inserter(A17), std::multiplies<real_T>());
-                std::vector<real_T> A18;
-                std::transform(x22_x3.begin(), x22_x3.end(), U.begin(), std::back_inserter(A18), std::multiplies<real_T>());
-                std::vector<real_T> A19;
-                std::transform(x2_x32.begin(), x2_x32.end(), U.begin(), std::back_inserter(A19), std::multiplies<real_T>());
-                std::vector<real_T> A20;
-                std::transform(x1_x2_x3.begin(), x1_x2_x3.end(), U.begin(), std::back_inserter(A20), std::multiplies<real_T>());
-
-                std::vector<std::vector<real_T>> vector_of_vectors = { A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20 };
-                std::vector<real_T> P33_output;
-                for (int i = 0; i < vector_of_vectors.size(); i++)
-                {
-                    P33_output.insert(P33_output.end(), vector_of_vectors[i].begin(), vector_of_vectors[i].end());
-                }
+                std::vector<real_T> P33_output = { A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20 };
                 return P33_output;
             }
 
             // Function to find the 5th degree polynomial with 2 parameters
-            static std::vector<real_T> P52(std::vector<real_T> x1, std::vector<real_T> x2, std::vector<real_T> U = std::vector<real_T>())
+            static std::vector<real_T> P52(real_T x1, real_T  x2, real_T U = 1)
             {
-                if (U.size() == 0)
-                {
-                    for (int i = 0; i < x1.size(); i++)
-                    {
-                        U.push_back(1);
-                    }
-                }
-                std::vector<real_T> initial(x1.size(), 1);
-                std::vector<real_T> x12;
-                std::vector<real_T> x13;
-                std::vector<real_T> x14;
-                std::vector<real_T> x15;
-                std::vector<real_T> x22;
-                std::vector<real_T> x23;
-                std::vector<real_T> x24;
-                std::vector<real_T> x25;
 
-                std::vector<real_T> x1_x2;
-                std::vector<real_T> x1_x22;
-                std::vector<real_T> x1_x23;
-                std::vector<real_T> x1_x24;
+                real_T A1 = U;
+                real_T A2 = x1 * U;
+                real_T A3 = x2 * U;
+                real_T A4 = x2 * x2 * U;
+                real_T A5 = x1 * x2 * U;
+                real_T A6 = x2 * x2 * U;
+                real_T A7 = x1*x1*x1 * U;
+                real_T A8 = x1 *x1* x2 * U;
+                real_T A9 = x1 * x2 *x2 * U;
+                real_T A10 = x2 * x2 *x2 * U;
+                real_T A11 = x1 * x1 * x1 * x1 * U;
+                real_T A12 = x1 * x1 * x1 * x2 * U;
+                real_T A13 = x1 * x1 * x2 * x2 * U;
+                real_T A14 = x1 * x2 * x2 * x2 * U;
+                real_T A15 = x2 * x2 * x2 * x2 * U;
+                real_T A16 = x1 * x1 * x1 * x1 * x1 * U;
+                real_T A17 = x1 * x1 * x1 * x1 * x2 * U;
+                real_T A18 = x1 * x1 * x1 * x2 * x2 * U;
+                real_T A19 = x1 * x1 * x2 * x2 * x2 * U;
+                real_T A20 = x1 * x2 * x2 * x2 * x2 * U;
+                real_T A21 = x2 * x2 * x2 * x2 * x2 * U;
 
-                std::vector<real_T> x12_x2;
-                std::vector<real_T> x12_x22;
-                std::vector<real_T> x12_x23;
-
-                std::vector<real_T> x13_x2;
-                std::vector<real_T> x13_x22;
-
-                std::vector<real_T> x14_x2;
-
-                std::transform(x1.begin(), x1.end(), std::back_inserter(x12), computeSquare);
-                std::transform(x1.begin(), x1.end(), std::back_inserter(x13), computeCube);
-                std::transform(x1.begin(), x1.end(), std::back_inserter(x14), computeQuartic);
-                std::transform(x1.begin(), x1.end(), std::back_inserter(x15), computeQuintic);
-                std::transform(x2.begin(), x2.end(), std::back_inserter(x22), computeSquare);
-                std::transform(x2.begin(), x2.end(), std::back_inserter(x23), computeCube);
-                std::transform(x2.begin(), x2.end(), std::back_inserter(x24), computeQuartic);
-                std::transform(x2.begin(), x2.end(), std::back_inserter(x25), computeQuintic);
-
-                std::transform(x1.begin(), x1.end(), x2.begin(), std::back_inserter(x1_x2), std::multiplies<real_T>());
-                std::transform(x1.begin(), x1.end(), x22.begin(), std::back_inserter(x1_x22), std::multiplies<real_T>());
-                std::transform(x1.begin(), x1.end(), x23.begin(), std::back_inserter(x1_x23), std::multiplies<real_T>());
-                std::transform(x1.begin(), x1.end(), x24.begin(), std::back_inserter(x1_x24), std::multiplies<real_T>());
-
-                std::transform(x12.begin(), x12.end(), x2.begin(), std::back_inserter(x12_x2), std::multiplies<real_T>());
-                std::transform(x12.begin(), x12.end(), x22.begin(), std::back_inserter(x12_x22), std::multiplies<real_T>());
-                std::transform(x12.begin(), x12.end(), x23.begin(), std::back_inserter(x12_x23), std::multiplies<real_T>());
-
-                std::transform(x13.begin(), x13.end(), x2.begin(), std::back_inserter(x13_x2), std::multiplies<real_T>());
-                std::transform(x13.begin(), x13.end(), x22.begin(), std::back_inserter(x13_x22), std::multiplies<real_T>());
-
-                std::transform(x14.begin(), x14.end(), x2.begin(), std::back_inserter(x14_x2), std::multiplies<real_T>());
-
-                std::vector<real_T> A1;
-                std::transform(initial.begin(), initial.end(), U.begin(), std::back_inserter(A1), std::multiplies<real_T>());
-                std::vector<real_T> A2;
-                std::transform(x1.begin(), x1.end(), U.begin(), std::back_inserter(A2), std::multiplies<real_T>());
-                std::vector<real_T> A3;
-                std::transform(x2.begin(), x2.end(), U.begin(), std::back_inserter(A3), std::multiplies<real_T>());
-                std::vector<real_T> A4;
-                std::transform(x22.begin(), x22.end(), U.begin(), std::back_inserter(A4), std::multiplies<real_T>());
-                std::vector<real_T> A5;
-                std::transform(x1_x2.begin(), x1_x2.end(), U.begin(), std::back_inserter(A5), std::multiplies<real_T>());
-                std::vector<real_T> A6;
-                std::transform(x22.begin(), x22.end(), U.begin(), std::back_inserter(A6), std::multiplies<real_T>());
-                std::vector<real_T> A7;
-                std::transform(x13.begin(), x13.end(), U.begin(), std::back_inserter(A7), std::multiplies<real_T>());
-                std::vector<real_T> A8;
-                std::transform(x12_x2.begin(), x12_x2.end(), U.begin(), std::back_inserter(A8), std::multiplies<real_T>());
-                std::vector<real_T> A9;
-                std::transform(x1_x22.begin(), x1_x22.end(), U.begin(), std::back_inserter(A9), std::multiplies<real_T>());
-                std::vector<real_T> A10;
-                std::transform(x23.begin(), x23.end(), U.begin(), std::back_inserter(A10), std::multiplies<real_T>());
-                std::vector<real_T> A11;
-                std::transform(x14.begin(), x14.end(), U.begin(), std::back_inserter(A11), std::multiplies<real_T>());
-                std::vector<real_T> A12;
-                std::transform(x13_x2.begin(), x13_x2.end(), U.begin(), std::back_inserter(A12), std::multiplies<real_T>());
-                std::vector<real_T> A13;
-                std::transform(x12_x22.begin(), x12_x22.end(), U.begin(), std::back_inserter(A13), std::multiplies<real_T>());
-                std::vector<real_T> A14;
-                std::transform(x1_x23.begin(), x1_x23.end(), U.begin(), std::back_inserter(A14), std::multiplies<real_T>());
-                std::vector<real_T> A15;
-                std::transform(x24.begin(), x24.end(), U.begin(), std::back_inserter(A15), std::multiplies<real_T>());
-                std::vector<real_T> A16;
-                std::transform(x15.begin(), x15.end(), U.begin(), std::back_inserter(A16), std::multiplies<real_T>());
-                std::vector<real_T> A17;
-                std::transform(x14_x2.begin(), x14_x2.end(), U.begin(), std::back_inserter(A17), std::multiplies<real_T>());
-                std::vector<real_T> A18;
-                std::transform(x13_x22.begin(), x13_x22.end(), U.begin(), std::back_inserter(A18), std::multiplies<real_T>());
-                std::vector<real_T> A19;
-                std::transform(x12_x23.begin(), x12_x23.end(), U.begin(), std::back_inserter(A19), std::multiplies<real_T>());
-                std::vector<real_T> A20;
-                std::transform(x1_x24.begin(), x1_x24.end(), U.begin(), std::back_inserter(A20), std::multiplies<real_T>());
-                std::vector<real_T> A21;
-                std::transform(x25.begin(), x25.end(), U.begin(), std::back_inserter(A21), std::multiplies<real_T>());
-
-                std::vector<std::vector<real_T>> vector_of_vectors = { A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21 };
-                std::vector<real_T> P52_output;
-                for (int i = 0; i < vector_of_vectors.size(); i++)
-                {
-                    P52_output.insert(P52_output.end(), vector_of_vectors[i].begin(), vector_of_vectors[i].end());
-                }
+                std::vector<real_T> P52_output = { A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21 };
                 return P52_output;
 
             }
 
-            // regressor generator nrd order polynomial function with 1 inputs
-            static std::vector<std::vector<real_T>> P1n(std::vector<real_T> x, int n = -1, real_T bias = -1, std::vector<real_T> U = std::vector<real_T>())
-            {
-                if (n == -1) { n = 2; }
-                if (bias == -1) { bias = 1; }
-                if (U.size() == 0)
-                {
-                    for (int i = 0; i < x.size(); i++)
-                    {
-                        U.push_back(1);
-                    }
-                }
-
-                std::vector<std::vector<real_T>> Ap1n;
-                if (bias != 0)
-                {
-                    std::vector<real_T> local(x.size(), 1);
-                    std::vector<real_T> local2;
-                    std::transform(local.begin(), local.end(), U.begin(), std::back_inserter(local2), std::multiplies<real_T>());
-                    Ap1n.push_back(local2);
-                }
-
-                std::vector<real_T> exponential_term(x.size(), 1);
-                Ap1n.push_back(exponential_term);
-                for (int i = 1; i < n; i++)
-                {
-                    std::transform(exponential_term.begin(), exponential_term.end(), x.begin(), std::back_inserter(exponential_term), std::multiplies<real_T>());
-                    std::vector<real_T> local;
-                    std::transform(exponential_term.begin(), exponential_term.end(), U.begin(), std::back_inserter(local), std::multiplies<real_T>());
-                    Ap1n.push_back(local);
-                }
-                return Ap1n;
-            }
-
             // regressor generator 3rd order polynomial function with 2 inputs
-            static std::vector<std::vector<real_T>> P32(std::vector<real_T> x1, std::vector<real_T> x2, std::vector<real_T> U = std::vector<real_T>(), real_T bias = -1)
+            static std::vector<real_T> P32(real_T x1, real_T x2, real_T U = 1, real_T bias = -1)
             {
-                if (U.size() == 0)
-                {
-                    for (int i = 0; i < x1.size(); i++)
-                    {
-                        U.push_back(1);
-                    }
-                }
+                real_T A2 = x1 * U;
+                real_T A3 = x2 * U;
+                real_T A4 = x1 * x1 * U;
+                real_T A5 = x2 * x2 * U;
+                real_T A6 = x1 * x2 * U;
+                real_T A7 = x1 * x1 * x1 * U;
+                real_T A8 = x2 * x2 * x2 * U;
+                real_T A9 = x1 * x2 * x2 * U;
+                real_T A10 = x1 * x1 * x2 * U;
 
-                std::vector<real_T> x12;
-                std::vector<real_T> x13;
-                std::vector<real_T> x22;
-                std::vector<real_T> x23;
-
-                std::vector<real_T> x1_x2;
-                std::vector<real_T> x1_x22;
-
-                std::vector<real_T> x12_x2;
-
-                std::transform(x1.begin(), x1.end(), std::back_inserter(x12), computeSquare);
-                std::transform(x1.begin(), x1.end(), std::back_inserter(x13), computeCube);
-                std::transform(x2.begin(), x2.end(), std::back_inserter(x22), computeSquare);
-                std::transform(x2.begin(), x2.end(), std::back_inserter(x23), computeCube);
-
-                std::transform(x1.begin(), x1.end(), x2.begin(), std::back_inserter(x1_x2), std::multiplies<real_T>());
-                std::transform(x1.begin(), x1.end(), x22.begin(), std::back_inserter(x1_x22), std::multiplies<real_T>());
-
-                std::transform(x12.begin(), x12.end(), x2.begin(), std::back_inserter(x12_x2), std::multiplies<real_T>());
-
-                std::vector<real_T> A2;
-                std::transform(x1.begin(), x1.end(), U.begin(), std::back_inserter(A2), std::multiplies<real_T>());
-                std::vector<real_T> A3;
-                std::transform(x2.begin(), x2.end(), U.begin(), std::back_inserter(A3), std::multiplies<real_T>());
-                std::vector<real_T> A4;
-                std::transform(x12.begin(), x12.end(), U.begin(), std::back_inserter(A4), std::multiplies<real_T>());
-                std::vector<real_T> A5;
-                std::transform(x22.begin(), x22.end(), U.begin(), std::back_inserter(A5), std::multiplies<real_T>());
-                std::vector<real_T> A6;
-                std::transform(x1_x2.begin(), x1_x2.end(), U.begin(), std::back_inserter(A6), std::multiplies<real_T>());
-                std::vector<real_T> A7;
-                std::transform(x13.begin(), x13.end(), U.begin(), std::back_inserter(A7), std::multiplies<real_T>());
-                std::vector<real_T> A8;
-                std::transform(x23.begin(), x23.end(), U.begin(), std::back_inserter(A8), std::multiplies<real_T>());
-                std::vector<real_T> A9;
-                std::transform(x1_x22.begin(), x1_x22.end(), U.begin(), std::back_inserter(A9), std::multiplies<real_T>());
-                std::vector<real_T> A10;
-                std::transform(x12_x2.begin(), x12_x2.end(), U.begin(), std::back_inserter(A10), std::multiplies<real_T>());
-
-                std::vector<std::vector<real_T>> P32_output;
+                std::vector<real_T> P32_output;
                 if (bias != -1)
                 {
-                    std::vector<real_T> A1;
-                    std::vector<real_T> initial(x1.size(), 1);
-                    std::transform(initial.begin(), initial.end(), U.begin(), std::back_inserter(A1), std::multiplies<real_T>());
+                    real_T A1 = 1;
                     P32_output = { A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 };
                 }
                 else
                 {
                     P32_output = { A2, A3, A4, A5, A6, A7, A8, A9, A10 };
                 }
-
-                
                 return P32_output;
             }
 
-            static std::vector<real_T> sine_component_computation(std::vector<real_T> x, std::vector<real_T> U, int i)
+            static std::vector<real_T> Fn(real_T x, int n = 1, real_T bias = 1, real_T U = 1, real_T alpha = 0, real_T beta = 0)
             {
-                std::vector<real_T> sine_oper;
-                std::vector<real_T> sine_component;
-                for (int j = 0; j < x.size(); j++)
-                {
-                    sine_oper.push_back(sin((i+1) * x[j]));
-                }
-                std::transform(sine_oper.begin(), sine_oper.end(), U.begin(), std::back_inserter(sine_component), std::multiplies<real_T>());
-                return sine_component;
-            }
 
-            static std::vector<real_T> cosine_component_computation(std::vector<real_T> x, std::vector<real_T> U, int i)
-            {
-                std::vector<real_T> cosine_oper;
-                std::vector<real_T> cosine_component;
-                for (int j = 0; j < x.size(); j++)
-                {
-                    cosine_oper.push_back(cos((i+1) * x[j]));
-                }
-                std::transform(cosine_oper.begin(), cosine_oper.end(), U.begin(), std::back_inserter(cosine_component), std::multiplies<real_T>());
-                return cosine_component;
-            }
-
-            static std::vector<real_T> Fn(std::vector<real_T> x, int n = -1, real_T bias = -1, std::vector<real_T> U = std::vector<real_T>(), std::vector<real_T> alpha = std::vector<real_T>(), std::vector<real_T> beta = std::vector<real_T>())
-            {
-                if (n == -1) { n = 1; }
-                if (bias == -1) { bias = 1; }
-                if (U.size() == 0)
-                {
-                    for (int i = 0; i < x.size(); i++)
-                    {
-                        U.push_back(1);
-                    }
-                }
-
-                std::vector<std::vector<real_T>> A_F;
+                std::vector<real_T> A_F;
                 if (bias != 0)
                 {
-                    std::vector<real_T> local(x.size(), 1);
-                    A_F.push_back(local);
+                    A_F.push_back(1);
                 }
 
-                if (alpha.size() == 0)
+                for (int i = 0; i < n; i++)
                 {
-                    for (int i = 0; i < n; i++)
-                    {
-                        std::vector<real_T> sine_component = sine_component_computation(x, U, i);
-                        std::vector<real_T> cosine_component = cosine_component_computation(x, U, i);
+                    real_T sine_component = sin((i+1)*x)*U;
+                    std::vector<real_T> Ai1 = P32(alpha, beta, sine_component);
 
-                        A_F.push_back(sine_component);
-                        A_F.push_back(cosine_component);
-                    }
-                }
-                else if (beta.size() == 0)
-                {
-                    for (int i = 0; i < n; i++)
-                    {
-                        std::vector<real_T> sine_component = sine_component_computation(x, U, i);
-                        std::vector<std::vector<real_T>> Ai1 = P1n(alpha, 3, 1, sine_component);
+                    real_T cosine_component = cos((i+1)*x)*U;
+                    std::vector<real_T> Ai2 = P32(alpha, beta, cosine_component);
 
-                        std::vector<real_T> cosine_component = cosine_component_computation(x, U, i);
-                        std::vector<std::vector<real_T>> Ai2 = P1n(alpha, 3, 1, cosine_component);
-
-                        std::vector<real_T> Ai1_f;
-                        std::vector<real_T> Ai2_f;
-                        for (int j = 0; j < Ai1.size(); j++)
-                        {
-                            Ai1_f.push_back(Ai1[j][0]);
-                            Ai2_f.push_back(Ai2[j][0]);
-                        }
-
-                        A_F.push_back(Ai1_f);
-                        A_F.push_back(Ai2_f);
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < n; i++)
-                    {
-                        std::vector<real_T> sine_component = sine_component_computation(x, U, i);
-                        std::vector<std::vector<real_T>> Ai1 = P32(alpha, beta, sine_component);
-
-                        std::vector<real_T> cosine_component = cosine_component_computation(x, U, i);
-                        std::vector<std::vector<real_T>> Ai2 = P32(alpha, beta, cosine_component);
-
-                        std::vector<real_T> Ai1_f;
-                        std::vector<real_T> Ai2_f;
-                        for (int j = 0; j < Ai1.size(); j++)
-                        {
-                            Ai1_f.push_back(Ai1[j][0]);
-                            Ai2_f.push_back(Ai2[j][0]);
-                        }
-
-                        A_F.push_back(Ai1_f);
-                        A_F.push_back(Ai2_f);
-                    }
+                    A_F.insert(A_F.end(), Ai1.begin(), Ai1.end());
+                    A_F.insert(A_F.end(), Ai2.begin(), Ai2.end());
                 }
 
-                std::vector<real_T> A_F_f;
-                for (int i = 0; i < A_F.size(); i++)
-                {
-                    A_F_f.insert(A_F_f.end(), A_F[i].begin(), A_F[i].end());
-                }
-                return A_F_f;
-            }
-
-            // Function to find
-            // cross product of two vector array.
-            static void crossProduct(std::vector<real_T> vect_A, std::vector<real_T> vect_B, std::vector<real_T>& cross_P)
-
-            {
-
-                cross_P[0] = vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1];
-                cross_P[1] = vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2];
-                cross_P[2] = vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0];
-            }
-
-            //function to calculate dot product of two vectors
-            static real_T dot_product(std::vector<real_T> vector_a, std::vector<real_T> vector_b) {
-                real_T product = 0;
-                for (int i = 0; i < vector_a.size(); i++)
-                    product = product + vector_a[i] * vector_b[i];
-                return product;
+                return A_F;
             }
 
             static real_T calc_beta2(real_T uy, real_T vx)
             {
+                if (uy == 0 && vx == 0)
+                {
+                    return 0;
+                }
+
                 real_T beta = atan2(uy, vx);
                 if (beta < 0)
                 {
@@ -895,35 +546,27 @@ namespace msr {
                 }
                 return beta;
             }
+
+            real_T matlabFmod(real_T numerator, real_T denominator)
+            {
+                real_T result = fmod(numerator, denominator);
+                return result >= 0 ? result : result + denominator;
+            }
+
             void getNextKinematicsNoCollisionBB2(TTimeDelta dt, PhysicsBody& body, const Kinematics::State& current,
                 Kinematics::State& next, Wrench& next_wrench, const Vector3r& wind, float prop_damage[])
             {
                 const real_T dt_real = static_cast<real_T>(dt);
-                Vector3r avg_linear = Vector3r::Zero();
-                Vector3r avg_angular = Vector3r::Zero();
-                avg_linear = current.twist.linear + current.accelerations.linear * (0.5f * dt_real);
-                avg_angular = current.twist.angular + current.accelerations.angular * (0.5f * dt_real);
+                Vector3r avg_linear = current.twist.linear + current.accelerations.linear * (0.5f * dt_real);
+                Vector3r avg_angular = current.twist.angular + current.accelerations.angular * (0.5f * dt_real);
 
                 // Obtain PWM of the rotors and their rotational speeds
                 std::vector<real_T> PWMs = body.getPWMrotors();
-                control_signal_filter_w1.setInput(Utils::clip(PWMs[0], 0.0f, 1.0f));
-                control_signal_filter_w2.setInput(Utils::clip(PWMs[1], 0.0f, 1.0f));
-                control_signal_filter_w3.setInput(Utils::clip(PWMs[2], 0.0f, 1.0f));
-                control_signal_filter_w4.setInput(Utils::clip(PWMs[3], 0.0f, 1.0f));
-                real_T PWMs_0 = control_signal_filter_w1.getOutput();
-                real_T PWMs_1 = control_signal_filter_w2.getOutput();
-                real_T PWMs_2 = control_signal_filter_w3.getOutput();
-                real_T PWMs_3 = control_signal_filter_w4.getOutput();
 
-                real_T omega1 = sqrt(PWMs_0 * max_w_squared);
-                real_T omega2 = sqrt(PWMs_1 * max_w_squared);
-                real_T omega3 = sqrt(PWMs_2 * max_w_squared);
-                real_T omega4 = sqrt(PWMs_3 * max_w_squared);
-
-                control_signal_filter_w1.update();
-                control_signal_filter_w2.update();
-                control_signal_filter_w3.update();
-                control_signal_filter_w4.update();
+                real_T omega1 = sqrt(PWMs[2] * max_w_squared);
+                real_T omega2 = sqrt(PWMs[0] * max_w_squared);
+                real_T omega3 = sqrt(PWMs[3] * max_w_squared);
+                real_T omega4 = sqrt(PWMs[1] * max_w_squared);
 
                 // Circular area descibed by the rotating propeller
                 real_T Area = M_PIf * R * R;
@@ -979,38 +622,31 @@ namespace msr {
                     u_constraint = uv_scale * u;
                     v_constraint = uv_scale * v;
                 }
-                std::vector<real_T> AT0 = P33(std::vector<real_T> {u_constraint}, std::vector<real_T> {abs(v_constraint)}, std::vector<real_T> {w_constraint});
+                std::vector<real_T> AT0 = P33(u_constraint, abs(v_constraint), w_constraint);
                 std::vector<real_T> k_model_1{ -0.0463911782738117, 0.126912947052739, 0.324191845756361, -0.0557628235059462, 0.00571250782560552, -0.103210100621382, -0.0146821184410235, 0.0199520548034235, -0.138168259069616, 0.0273216857565274, -0.00105647803825825, 0.00634522471334950, 0.00166114145301890, -0.00689017065134193, -0.00104094928681998, -0.00176014569852436, 0.00304889473917665, 0.00866535042034273, -0.00554316427701624, -0.0137422347201967 };
-                real_T T_corr;
-                T_corr = dot_product(AT0, k_model_1);
+                real_T T_corr = std::inner_product(AT0.begin(), AT0.end(), k_model_1.begin(), 0.0);
 
                 // Calculate Ctand Cq of each rotor
                 std::vector<int> SL{ 1, -1, -1, 1 };
                 std::vector<int> SM{ 1, 1, -1, -1 };
                 std::vector<int> SN{ signr * 1, signr * -1, signr * 1, signr * -1 };
 
-                std::vector<real_T> d1{ l, -b, 0 };
-                std::vector<real_T> d2{ l, b, 0 };
-                std::vector<real_T> d3{ -l, b, 0 };
-                std::vector<real_T> d4{ -l, -b, 0 };
+                Vector3r d1(l, -b, 0);
+                Vector3r d2(l, b, 0);
+                Vector3r d3(-l, b, 0);
+                Vector3r d4(-l, -b, 0);
 
                 // The speed in u, vand w experienced by each rotor
-                std::vector<real_T> pqr{ avg_angular.x(),  avg_angular.y(),  avg_angular.z() };
-                std::vector<real_T> V1(3), V2(3), V3(3), V4(3);
-                crossProduct(pqr, d1, V1);
-                crossProduct(pqr, d2, V2);
-                crossProduct(pqr, d3, V3);
-                crossProduct(pqr, d4, V4);
-                std::transform(V1.begin(), V1.end(), V.begin(), V1.begin(), std::plus<real_T>());
-                std::transform(V2.begin(), V2.end(), V.begin(), V2.begin(), std::plus<real_T>());
-                std::transform(V3.begin(), V3.end(), V.begin(), V3.begin(), std::plus<real_T>());
-                std::transform(V4.begin(), V4.end(), V.begin(), V4.begin(), std::plus<real_T>());
+                Vector3r V1 = avg_angular.cross(d1) + linear_vel_body;
+                Vector3r V2 = avg_angular.cross(d2) + linear_vel_body;
+                Vector3r V3 = avg_angular.cross(d3) + linear_vel_body;
+                Vector3r V4 = avg_angular.cross(d4) + linear_vel_body;
 
                 // The speed in u, vand w experienced by each rotor
-                real_T u1 = V1[0]; real_T v1 = V1[1]; real_T w1 = V1[3];
-                real_T u2 = V2[0]; real_T v2 = V2[1]; real_T w2 = V2[3];
-                real_T u3 = V3[0]; real_T v3 = V3[1]; real_T w3 = V3[3];
-                real_T u4 = V4[0]; real_T v4 = V4[1]; real_T w4 = V4[3];
+                real_T u1 = V1.x(); real_T v1 = V1.y(); real_T w1 = V1.z();
+                real_T u2 = V2.x(); real_T v2 = V2.y(); real_T w2 = V2.z();
+                real_T u3 = V3.x(); real_T v3 = V3.y(); real_T w3 = V3.z();
+                real_T u4 = V4.x(); real_T v4 = V4.y(); real_T w4 = V4.z();
 
                 // Airspeed experienced by each rotor
                 real_T va1 = sqrt(u1 * u1 + v1 * v1 + w1 * w1);
@@ -1066,25 +702,25 @@ namespace msr {
                 // Failures in the High - Speed Flight Regime", Equation 9.
                 std::vector<real_T> k_Ct0{ 0.0152457017219075, -3.19835880466424e-05, -0.0474659629880834, -5.48089604291955e-08, -0.000164550969624146, 0.650877249185920, 1.10477778832442e-08, -9.76752919452344e-06, 0.00859691522825337, -2.20418122442645, 3.27434126987218e-11, -5.69117054658112e-08, 2.32561854294217e-05, -0.0116550184566165, 3.04959484433102, -6.00795185558617e-13, 1.81690349314076e-10, -4.63671043348055e-08, -1.52454780569063e-05, 0.00607313609112646, -1.51563942225535 };
 
-                std::vector<real_T> Ct01_P52 = P52(std::vector<real_T> {alpha1}, std::vector<real_T> {vv1});
-                real_T Ct01 = dot_product(Ct01_P52, k_Ct0);
+                std::vector<real_T> Ct01_P52 = P52(alpha1, vv1);
+                real_T Ct01 = std::inner_product(Ct01_P52.begin(), Ct01_P52.end(), k_Ct0.begin(), 0.0);
 
-                std::vector<real_T> Ct02_P52 = P52(std::vector<real_T> {alpha2}, std::vector<real_T> {vv2});
-                real_T Ct02 = dot_product(Ct02_P52, k_Ct0);
+                std::vector<real_T> Ct02_P52 = P52(alpha2, vv2);
+                real_T Ct02 = std::inner_product(Ct02_P52.begin(), Ct02_P52.end(), k_Ct0.begin(), 0.0);
 
-                std::vector<real_T> Ct03_P52 = P52(std::vector<real_T> {alpha3}, std::vector<real_T> {vv3});
-                real_T Ct03 = dot_product(Ct03_P52, k_Ct0);
+                std::vector<real_T> Ct03_P52 = P52(alpha3, vv3);
+                real_T Ct03 = std::inner_product(Ct03_P52.begin(), Ct03_P52.end(), k_Ct0.begin(), 0.0);
 
-                std::vector<real_T> Ct04_P52 = P52(std::vector<real_T> {alpha4}, std::vector<real_T> {vv4});
-                real_T Ct04 = dot_product(Ct04_P52, k_Ct0);
+                std::vector<real_T> Ct04_P52 = P52(alpha4, vv4);
+                real_T Ct04 = std::inner_product(Ct04_P52.begin(), Ct04_P52.end(), k_Ct0.begin(), 0.0);
 
                 // Cq is used for the drag torque of the rotor
                 std::vector<real_T> k_Cq0{ -0.000166978387654207, -9.26661647846620e-07, -0.000161106517356852, 1.49219451037256e-09, -2.80468068962665e-06, 0.000591396065463947, 4.46363200546300e-10, 8.90349145739088e-08, -1.53880349952214e-05, -0.00773976740405967, -3.70391296926118e-13, 3.92836511888492e-10, -1.33297247718639e-08, -0.000133549679393062, 0.0164947421115812, -4.17586454158575e-14, -3.24864794974322e-12, 1.14205811263298e-09, -6.42233810561959e-08, 0.000149532607712236, -0.0106110955476936 };
 
-                real_T Cq01 = dot_product(Ct01_P52, k_Cq0);
-                real_T Cq02 = dot_product(Ct02_P52, k_Cq0);
-                real_T Cq03 = dot_product(Ct03_P52, k_Cq0);
-                real_T Cq04 = dot_product(Ct04_P52, k_Cq0);
+                real_T Cq01 = std::inner_product(Ct01_P52.begin(), Ct01_P52.end(), k_Cq0.begin(), 0.0);
+                real_T Cq02 = std::inner_product(Ct02_P52.begin(), Ct02_P52.end(), k_Cq0.begin(), 0.0);
+                real_T Cq03 = std::inner_product(Ct03_P52.begin(), Ct03_P52.end(), k_Cq0.begin(), 0.0);
+                real_T Cq04 = std::inner_product(Ct04_P52.begin(), Ct04_P52.end(), k_Cq0.begin(), 0.0);
 
                 // Similar to the angle of attack equation-- > horizontal advance ratio.The
                 // explanation of this quantity is found in the paper "Aerodynamic Model 
@@ -1110,46 +746,44 @@ namespace msr {
                 if (isnan(lc4) || isinf(abs(lc4))) { lc4 = 0; }
 
                 real_T beta = calc_beta2(u, v) * 57.3;
-                real_T psi_h1 = beta - 413; psi_h1 = psi_h1 / 57.3;
-                real_T psi_h2 = beta - 307; psi_h2 = psi_h2 / 57.3;
-                real_T psi_h3 = beta - 233; psi_h3 = psi_h3 / 57.3;
-                real_T psi_h4 = beta - 127; psi_h4 = psi_h4 / 57.3;
+                real_T psi_h1 = (beta - 413) / 57.3;
+                real_T psi_h2 = (beta - 307) / 57.3;
+                real_T psi_h3 = (beta - 233) / 57.3;
+                real_T psi_h4 = (beta - 127) / 57.3;
 
-                psi_h1 = fmod(psi_h1, 2 * M_PIf);
-                psi_h2 = fmod(psi_h2, 2 * M_PIf);
-                psi_h3 = fmod(psi_h3, 2 * M_PIf);
-                psi_h4 = fmod(psi_h4, 2 * M_PIf);
+                psi_h1 = matlabFmod(psi_h1, 2 * M_PIf);
+                psi_h2 = matlabFmod(psi_h2, 2 * M_PIf);
+                psi_h3 = matlabFmod(psi_h3, 2 * M_PIf);
+                psi_h4 = matlabFmod(psi_h4, 2 * M_PIf);
 
                 // calculate dCt and dCq using model identified from the flight data
                 std::vector<real_T> k_model_2{ 0.00274750362242118, 0.0587325418628517, 0.0291979006795257, 0.155176381977433, -0.848919654295447, -2.85285652127970, -16.6872606424138, -25.3582092758054, -8.21139486023900, 0.000662666074942486, -0.0137515544490184, 0.0258468383560923, 0.129354278831284, 0.739022953068088, -0.751589665006720, 2.30225029828906, 3.19387485842342, -2.01400124775404, -0.0327090226346993, 0.00550048663001955, 0.704747484311295, 0.384042859177342, 0.409107040799852, -2.91693142809590, -5.72731924259749, -3.84424311448819, 0.957068915766478, 0.00798767042006989, -0.0658174319226979, -0.515362725845307, 0.154017181898898, 1.07229345471127, 5.60834749404815, 3.12341580631406, 13.2751387862931, 3.38340384818304, -0.00871325200163225, 0.0139319909808224, 0.135829051260073, 0.0724018634704221, 0.462231305873754, 1.07728548843851, -2.92439099099261, 2.07387265629944, -1.76236683822441, 0.00277901355913424, 5.93712461960435e-05, -0.0737682036851551, 0.408392701436168, 0.181780336855863, -0.0914796558508702, -5.33048488631146, -11.6294693255163, -4.72950404100762, -0.00594871416216384, -0.0162850806730608, 0.173368295316786, 0.186292675296392, 0.225644067201894, -0.688845939593434, -6.49432628543192, -7.80900137821226, 0.415239218701371, -0.00544216811616573, 0.00518487316578840, 0.0476580090813803, -0.200801241660794, -0.476117215479456, -0.407991135460875, -1.81735072025647, 1.50472930028764, 4.35662490484023, -0.00159368739623987, 0.000467723919419556, 0.0129022985413385, -0.142747208717601, -0.286423056758624, -0.233246678589007, 5.27930446169201, 6.06363387971617, 3.14128857337644, 0.00453268191002699, -0.00474962613583822, -0.180460224377998, -0.0116017180130748, 0.0192198318847662, 1.17708508701190, 0.0640467785184096, 3.10723451211166, 0.482465692101886 };
                 std::vector<real_T> k_model_11{ 0.00260329204354066, 0.00129328992586148, -0.0199809965492002, -0.0868022523710462, -0.0889469386700429, 0.128032771798353, 0.146886709138850, 0.524080931866815, 0.725843471299357, 0.00242937984350116, -0.00310550867822261, -0.0595768021706452, 0.0523222113704624, 0.0799385477524136, 0.0802433226135493, 0.387865290852874, 0.137337555435232, -0.310321282567866, 0.00158155254379188, 0.00319704874615568, -0.0554013498676434, -0.133883081875846, -0.154861909695999, 0.246917675390354, 0.0807388330437734, 1.21408540541708, 0.991981880292023, -9.00820660019962e-05, 0.000417739287775632, -0.00176625889617756, -0.0352354581017755, 0.00347023118130632, -0.0818779712415576, -0.0939352353976481, 0.367104057232038, -0.239846676494934, 0.000548702590051651, 0.000217200486637933, -0.00564899836836745, -0.000264397140190192, 0.00896129402789547, -0.0942019724552947, 0.0408551476683280, 0.607021266741172, 0.0144874105803823, 0.000847230370183477, -0.000948252583147180, -0.00265605533100469, 0.0598956109168678, 0.0807953120897514, -0.0545778293654141, -0.235368707057857, -0.948022031763549, -0.608815444932934, -0.000182959785330574, 0.00167139842657429, 0.00833552390363391, 0.0167067780351973, -0.00216159653990414, -0.0668352653475071, 0.0332682896037231, -0.220002714254035, -0.100740744918869, -0.000459348737065979, -0.00323901937377689, 0.0150989940672047, -0.00337931488830346, 0.0705271437626767, -0.0355357034004435, -0.0945407727921580, -0.114237238851565, -0.348109605269992, -0.000423056934179010, -1.57962640331396e-05, 0.00625198744041810, -0.0204741957877981, -0.00655890452523322, -0.0335286749006157, 0.0745650825531103, 0.0289036906676707, -0.0296758936977819, -0.000231091410645385, -0.000748657303930713, 0.00208598921233990, -0.0132023573075178, 0.0116429676033409, 0.0151697188209396, -0.0404565223580964, 0.178329482629743, 0.0297489549373982 };
-                std::vector<real_T> Fn1 = Fn(std::vector<real_T> {psi_h1}, h, 0, std::vector<real_T> {1}, std::vector<real_T> {mu1}, std::vector<real_T> {lc1});
-                real_T dCt_1;
-                dCt_1 = dot_product(Fn1, k_model_2);
+                
+                std::vector<real_T> Fn1 = Fn(psi_h1, h, 0, 1, mu1, lc1);
+                std::vector<real_T> Fn2 = Fn(2 * M_PIf - psi_h2, h, 0, 1, mu2, lc2);
+                std::vector<real_T> Fn3 = Fn(psi_h3, h, 0, 1, mu3, lc3);
+                std::vector<real_T> Fn4 = Fn(2 * M_PIf - psi_h4, h, 0, 1, mu4, lc4);
 
-                std::vector<real_T> Fn2 = Fn(std::vector<real_T> {2 * M_PIf - psi_h2}, h, 0, std::vector<real_T> {1}, std::vector<real_T> {mu2}, std::vector<real_T> {lc2});
-                real_T dCt_2;
-                dCt_2 = dot_product(Fn2, k_model_2);
+                real_T dCt_1 = std::inner_product(Fn1.begin(), Fn1.end(), k_model_2.begin(), 0.0);
+                real_T dCt_2 = std::inner_product(Fn2.begin(), Fn2.end(), k_model_2.begin(), 0.0);
+                real_T dCt_3 = std::inner_product(Fn3.begin(), Fn3.end(), k_model_2.begin(), 0.0);
+                real_T dCt_4 = std::inner_product(Fn4.begin(), Fn4.end(), k_model_2.begin(), 0.0);
 
-                std::vector<real_T> Fn3 = Fn(std::vector<real_T> {psi_h3}, h, 0, std::vector<real_T> {1}, std::vector<real_T> {mu3}, std::vector<real_T> {lc3});
-                real_T dCt_3;
-                dCt_3 = dot_product(Fn3, k_model_2);
+                real_T dCq_1 = std::inner_product(Fn1.begin(), Fn1.end(), k_model_11.begin(), 0.0);
+                real_T dCq_2 = std::inner_product(Fn2.begin(), Fn2.end(), k_model_11.begin(), 0.0);
+                real_T dCq_3 = std::inner_product(Fn3.begin(), Fn3.end(), k_model_11.begin(), 0.0);
+                real_T dCq_4 = std::inner_product(Fn4.begin(), Fn4.end(), k_model_11.begin(), 0.0);
 
-                std::vector<real_T> Fn4 = Fn(std::vector<real_T> {2 * M_PIf - psi_h4}, h, 0, std::vector<real_T> {1}, std::vector<real_T> {mu4}, std::vector<real_T> {lc4});
-                real_T dCt_4;
-                dCt_4 = dot_product(Fn4, k_model_2);
+                //dCt_1 = 0;
+                //dCt_2 = 0;
+                //dCt_3 = 0;
+                //dCt_4 = 0;
 
-                real_T dCq_1;
-                dCq_1 = dot_product(Fn1, k_model_11);
-
-                real_T dCq_2;
-                dCq_2 = dot_product(Fn2, k_model_11);
-
-                real_T dCq_3;
-                dCq_3 = dot_product(Fn3, k_model_11);
-
-                real_T dCq_4;
-                dCq_4 = dot_product(Fn4, k_model_11);
+                //dCq_1 = 0;
+                //dCq_2 = 0;
+                //dCq_3 = 0;
+                //dCq_4 = 0;
 
                 // saturate dCtand dCq for extrapolation
                 if (dCt_1 > 0.007) { dCt_1 = 0.007; }
@@ -1172,15 +806,16 @@ namespace msr {
 
                 // interaction effect is negligible when V < 2m / s;
                 real_T vh = sqrt(u * u + v * v);
-                dCt_1 = 1 / (1 + exp(-6 * (vh - 1))) * dCt_1;
-                dCt_2 = 1 / (1 + exp(-6 * (vh - 1))) * dCt_2;
-                dCt_3 = 1 / (1 + exp(-6 * (vh - 1))) * dCt_3;
-                dCt_4 = 1 / (1 + exp(-6 * (vh - 1))) * dCt_4;
-
-                dCq_1 = 1 / (1 + exp(-6 * (vh - 1))) * dCq_1;
-                dCq_2 = 1 / (1 + exp(-6 * (vh - 1))) * dCq_2;
-                dCq_3 = 1 / (1 + exp(-6 * (vh - 1))) * dCq_3;
-                dCq_4 = 1 / (1 + exp(-6 * (vh - 1))) * dCq_4;
+                real_T one_exp = 1 / (1 + exp(-6 * (vh - 1)));
+                dCt_1 = one_exp * dCt_1;
+                dCt_2 = one_exp * dCt_2;
+                dCt_3 = one_exp * dCt_3;
+                dCt_4 = one_exp * dCt_4;
+                        
+                dCq_1 = one_exp * dCq_1;
+                dCq_2 = one_exp * dCq_2;
+                dCq_3 = one_exp * dCq_3;
+                dCq_4 = one_exp * dCq_4;
 
                 // Forces and moments of each rotor
                 // The following equations compute the thrust of each motor.The equations
@@ -1333,7 +968,7 @@ namespace msr {
                     const Vector3r w2_dot_vector = Vector3r(0, 0, -omega2_dot);
                     const Vector3r w3_dot_vector = Vector3r(0, 0, omega3_dot);
                     const Vector3r w4_dot_vector = Vector3r(0, 0, -omega4_dot);
-                    const Vector3r M_gyro_first = signr * (Ip * w1_dot_vector + Ip * w2_dot_vector + Ip * w3_dot_vector + Ip * w4_dot_vector);
+                    const Vector3r M_gyro_first = Ip * w1_dot_vector + Ip * w2_dot_vector + Ip * w3_dot_vector + Ip * w4_dot_vector;
 
                     omega1_last = omega1;
                     omega2_last = omega2;
@@ -1341,7 +976,7 @@ namespace msr {
                     omega4_last = omega4;
 
 
-                    const Vector3r M_gyro = M_gyro_first + M_gyro_second;
+                    const Vector3r M_gyro = signr * (M_gyro_first + M_gyro_second);
                     const Vector3r angular_momentum_rate = next_wrench.torque - M_gyro - avg_angular.cross(angular_momentum);
                     //new angular acceleration - we'll use this acceleration in next time step
                     next.accelerations.angular = body.getInertiaInv() * angular_momentum_rate;
@@ -1366,6 +1001,7 @@ namespace msr {
                     }
                 }
                 real_T x_location = current.pose.position.x();
+                real_T z_location = current.pose.position.z();
                 computeNextPose(dt, current.pose, avg_linear, avg_angular, next);
             }
             static void getNextKinematicsNoCollision(TTimeDelta dt, PhysicsBody& body, const Kinematics::State& current,
@@ -1516,7 +1152,7 @@ namespace msr {
             static constexpr real_T R = 0.075; // radius described by the propeller
             static constexpr real_T l = 0.0875; // distance of propeller to the y-axis of the drone
             static constexpr real_T b = 0.1150; // distance of propeller to x-axis
-            static constexpr int signr = -1;
+            static constexpr int signr = 1;
             static constexpr real_T rho = 1.225;  // density at the altitude in which the drone flies
             static constexpr int h = 5;   // variable used in the computation of dCt and dCq
 
@@ -1525,10 +1161,10 @@ namespace msr {
             real_T omega3_last = 0;
             real_T omega4_last = 0;
 
-            FirstOrderFilter<real_T> control_signal_filter_w1;
-            FirstOrderFilter<real_T> control_signal_filter_w2;
-            FirstOrderFilter<real_T> control_signal_filter_w3;
-            FirstOrderFilter<real_T> control_signal_filter_w4;
+            //FirstOrderFilter<real_T> control_signal_filter_w1;
+            //FirstOrderFilter<real_T> control_signal_filter_w2;
+            //FirstOrderFilter<real_T> control_signal_filter_w3;
+            //FirstOrderFilter<real_T> control_signal_filter_w4;
         };
 
     }
