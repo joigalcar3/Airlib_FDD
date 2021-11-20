@@ -160,6 +160,8 @@ RpcLibServerBase::RpcLibServerBase(ApiProvider* api_provider, const std::string&
 
     pimpl_->server.bind("simSetVehiclePose", [&](const RpcLibAdaptorsBase::Pose &pose, bool ignore_collision, const std::string& vehicle_name) -> void {
         getVehicleSimApi(vehicle_name)->setPose(pose.to(), ignore_collision);
+        getVehicleApi(vehicle_name)->setNextPathLocObj(pose.to());
+        getVehicleApi(vehicle_name)->droneTeleportReset();
     });
 
     pimpl_->server.bind("simGetVehiclePose", [&](const std::string& vehicle_name) -> RpcLibAdaptorsBase::Pose {

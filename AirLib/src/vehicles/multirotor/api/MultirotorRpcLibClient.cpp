@@ -80,6 +80,230 @@ bool MultirotorRpcLibClient::dummyprinter(float numerito, const std::string& veh
     return static_cast<rpc::client*>(getClient())->call("dummyprinter", numerito, vehicle_name).as<bool>();
 }
 
+// Methods related to the reference position data gathering
+void MultirotorRpcLibClient::setPosRefActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setPosRefActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanPosRefStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanPosRefStoredData", vehicle_name);
+}
+
+PosRefStoredData MultirotorRpcLibClient::getPosRefStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getPosRefStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::PosRefStoredData>().to();
+}
+
+// Methods related to the position error data gathering
+void MultirotorRpcLibClient::setPosErrorActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setPosErrorActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanPosErrorStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanPosErrorStoredData", vehicle_name);
+}
+
+PosErrorStoredData MultirotorRpcLibClient::getPosErrorStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getPosErrorStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::PosErrorStoredData>().to();
+}
+
+// Methods related to the position error derivative data gathering
+void MultirotorRpcLibClient::setPosErrorDotActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setPosErrorDotActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanPosErrorDotStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanPosErrorDotStoredData", vehicle_name);
+}
+
+PosErrorDotStoredData MultirotorRpcLibClient::getPosErrorDotStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getPosErrorDotStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::PosErrorDotStoredData>().to();
+}
+
+// Methods related to the reference velocity data gathering
+void MultirotorRpcLibClient::setVelRefActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setVelRefActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanVelRefStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanVelRefStoredData", vehicle_name);
+}
+
+VelRefStoredData MultirotorRpcLibClient::getVelRefStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getVelRefStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::VelRefStoredData>().to();
+}
+
+// Methods related to the velocity data gathering
+void MultirotorRpcLibClient::setVelActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setVelActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanVelStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanVelStoredData", vehicle_name);
+}
+
+VelStoredData MultirotorRpcLibClient::getVelStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getVelStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::VelStoredData>().to();
+}
+
+// Methods related to the reference acceleration data gathering
+void MultirotorRpcLibClient::setAccRefActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setAccRefActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanAccRefStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanAccRefStoredData", vehicle_name);
+}
+
+AccRefStoredData MultirotorRpcLibClient::getAccRefStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getAccRefStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::AccRefStoredData>().to();
+}
+
+// Methods related to the reference rotational rates data gathering
+void MultirotorRpcLibClient::setPqrRefActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setPqrRefActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanPqrRefStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanPqrRefStoredData", vehicle_name);
+}
+
+PqrRefStoredData MultirotorRpcLibClient::getPqrRefStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getPqrRefStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::PqrRefStoredData>().to();
+}
+
+// Methods related to the rotational rates data gathering
+void MultirotorRpcLibClient::setPqrActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setPqrActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanPqrStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanPqrStoredData", vehicle_name);
+}
+
+PqrStoredData MultirotorRpcLibClient::getPqrStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getPqrStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::PqrStoredData>().to();
+}
+
+// Methods related to the reference thrust data gathering
+void MultirotorRpcLibClient::setThrustRefActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setThrustRefActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanThrustRefStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanThrustRefStoredData", vehicle_name);
+}
+
+ThrustRefStoredData MultirotorRpcLibClient::getThrustRefStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getThrustRefStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::ThrustRefStoredData>().to();
+}
+
+// Methods related to the omegas (motor rotations) data gathering
+void MultirotorRpcLibClient::setOmegasActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setOmegasActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanOmegasStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanOmegasStoredData", vehicle_name);
+}
+
+OmegasStoredData MultirotorRpcLibClient::getOmegasStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getOmegasStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::OmegasStoredData>().to();
+}
+
+// Methods related to the reference yaw data gathering
+void MultirotorRpcLibClient::setYawRefActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setYawRefActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanYawRefStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanYawRefStoredData", vehicle_name);
+}
+
+YawRefStoredData MultirotorRpcLibClient::getYawRefStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getYawRefStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::YawRefStoredData>().to();
+}
+
+// Methods related to the reference orientation data gathering
+void MultirotorRpcLibClient::setOrientationActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setOrientationActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanOrientationStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanOrientationStoredData", vehicle_name);
+}
+
+OrientationStoredData MultirotorRpcLibClient::getOrientationStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getOrientationStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::OrientationStoredData>().to();
+}
+
+// Methods related to the position integrator data gathering
+void MultirotorRpcLibClient::setPositionIntegratorActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setPositionIntegratorActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanPositionIntegratorStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanPositionIntegratorStoredData", vehicle_name);
+}
+
+PositionIntegratorStoredData MultirotorRpcLibClient::getPositionIntegratorStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getPositionIntegratorStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::PositionIntegratorStoredData>().to();
+}
+
+// Methods related to the thrust PI controller data gathering
+void MultirotorRpcLibClient::setThrustPiActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setThrustPiActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanThrustPiStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanThrustPiStoredData", vehicle_name);
+}
+
+ThrustPiStoredData MultirotorRpcLibClient::getThrustPiStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getThrustPiStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::ThrustPiStoredData>().to();
+}
+
 // Methods related to the Camera data gathering
 void MultirotorRpcLibClient::setCameraActivation(bool activation, float sample_rate, vector<ImageCaptureBase::ImageRequest> request, const std::string& vehicle_name)
 {
@@ -192,6 +416,11 @@ GPSStoredData MultirotorRpcLibClient::getGPSStoredDataVec(const std::string& veh
     return static_cast<rpc::client*>(getClient())->call("getGPSStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::GPSStoredData>().to();
 }
 
+// Methods related to the drone teleportation
+void MultirotorRpcLibClient::setTeleportYawRef(float yaw_angle_ref, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setTeleportYawRef", yaw_angle_ref, vehicle_name);
+}
 
 // Methods related to the drone failures
 void MultirotorRpcLibClient::setDamageCoefficients(float new_coeff_1, float new_coeff_2, float new_coeff_3, float new_coeff_4, const std::string& vehicle_name)

@@ -15,6 +15,8 @@ namespace msr { namespace airlib {
 
 void MultirotorApiBase::resetImplementation()
 {
+    next_path_loc_obj.position = Vector3r(0,0,-0.146495879f);
+    yaw_ref_deg = 0;
     cancelLastTask();
     SingleTaskCall lock(this); //cancel previous tasks
 }
@@ -79,6 +81,418 @@ bool MultirotorApiBase::dummyprinter(float numerito)
         return true;
     else
         return false;
+}
+
+
+// Change the path location object
+void MultirotorApiBase::setNextPathLocObj(Pose pose)
+{
+    next_path_loc_obj.position.x() = pose.position.x();
+    next_path_loc_obj.position.y() = pose.position.y();
+    next_path_loc_obj.position.z() = pose.position.z();
+}
+
+// Methods related to the reference position data gathering
+void MultirotorApiBase::setPosRefActivation(bool activation, float sample_rate)
+{
+    setPosRefAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanPosRefStoredData()
+{
+    cleanPosRefSD();
+}
+
+PosRefStoredData MultirotorApiBase::getPosRefStoredDataVec()
+{
+    std::vector<std::vector<float>> pos_ref_data = getPosRefStoredData();
+    std::vector<float> pos_ref_x;
+    std::vector<float> pos_ref_y;
+    std::vector<float> pos_ref_z;
+
+    for (int i = 0; i < pos_ref_data.size(); i++)
+    {
+        pos_ref_x.push_back(pos_ref_data[i][0]);
+        pos_ref_y.push_back(pos_ref_data[i][1]);
+        pos_ref_z.push_back(pos_ref_data[i][2]);
+    }
+
+    PosRefStoredData dc = PosRefStoredData(pos_ref_x, pos_ref_y, pos_ref_z);
+    return dc;
+}
+
+// Methods related to the position error data gathering
+void MultirotorApiBase::setPosErrorActivation(bool activation, float sample_rate)
+{
+    setPosErrorAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanPosErrorStoredData()
+{
+    cleanPosErrorSD();
+}
+
+PosErrorStoredData MultirotorApiBase::getPosErrorStoredDataVec()
+{
+    std::vector<std::vector<float>> pos_error_data = getPosErrorStoredData();
+    std::vector<float> pos_error_x;
+    std::vector<float> pos_error_y;
+    std::vector<float> pos_error_z;
+
+    for (int i = 0; i < pos_error_data.size(); i++)
+    {
+        pos_error_x.push_back(pos_error_data[i][0]);
+        pos_error_y.push_back(pos_error_data[i][1]);
+        pos_error_z.push_back(pos_error_data[i][2]);
+    }
+
+    PosErrorStoredData dc = PosErrorStoredData(pos_error_x, pos_error_y, pos_error_z);
+    return dc;
+}
+
+// Methods related to the position error derivative data gathering
+void MultirotorApiBase::setPosErrorDotActivation(bool activation, float sample_rate)
+{
+    setPosErrorDotAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanPosErrorDotStoredData()
+{
+    cleanPosErrorDotSD();
+}
+
+PosErrorDotStoredData MultirotorApiBase::getPosErrorDotStoredDataVec()
+{
+    std::vector<std::vector<float>> pos_error_dot_data = getPosErrorDotStoredData();
+    std::vector<float> pos_error_dot_x;
+    std::vector<float> pos_error_dot_y;
+    std::vector<float> pos_error_dot_z;
+
+    for (int i = 0; i < pos_error_dot_data.size(); i++)
+    {
+        pos_error_dot_x.push_back(pos_error_dot_data[i][0]);
+        pos_error_dot_y.push_back(pos_error_dot_data[i][1]);
+        pos_error_dot_z.push_back(pos_error_dot_data[i][2]);
+    }
+
+    PosErrorDotStoredData dc = PosErrorDotStoredData(pos_error_dot_x, pos_error_dot_y, pos_error_dot_z);
+    return dc;
+}
+
+// Methods related to the reference velocity data gathering
+void MultirotorApiBase::setVelRefActivation(bool activation, float sample_rate)
+{
+    setVelRefAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanVelRefStoredData()
+{
+    cleanVelRefSD();
+}
+
+VelRefStoredData MultirotorApiBase::getVelRefStoredDataVec()
+{
+    std::vector<std::vector<float>> vel_ref_data = getVelRefStoredData();
+    std::vector<float> vel_ref_x;
+    std::vector<float> vel_ref_y;
+    std::vector<float> vel_ref_z;
+
+    for (int i = 0; i < vel_ref_data.size(); i++)
+    {
+        vel_ref_x.push_back(vel_ref_data[i][0]);
+        vel_ref_y.push_back(vel_ref_data[i][1]);
+        vel_ref_z.push_back(vel_ref_data[i][2]);
+    }
+
+    VelRefStoredData dc = VelRefStoredData(vel_ref_x, vel_ref_y, vel_ref_z);
+    return dc;
+}
+
+// Methods related to the reference position data gathering
+void MultirotorApiBase::setVelActivation(bool activation, float sample_rate)
+{
+    setVelAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanVelStoredData()
+{
+    cleanVelSD();
+}
+
+VelStoredData MultirotorApiBase::getVelStoredDataVec()
+{
+    std::vector<std::vector<float>> vel_data = getVelStoredData();
+    std::vector<float> vel_x;
+    std::vector<float> vel_y;
+    std::vector<float> vel_z;
+
+    for (int i = 0; i < vel_data.size(); i++)
+    {
+        vel_x.push_back(vel_data[i][0]);
+        vel_y.push_back(vel_data[i][1]);
+        vel_z.push_back(vel_data[i][2]);
+    }
+
+    VelStoredData dc = VelStoredData(vel_x, vel_y, vel_z);
+    return dc;
+}
+
+// Methods related to the reference acceleration data gathering
+void MultirotorApiBase::setAccRefActivation(bool activation, float sample_rate)
+{
+    setAccRefAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanAccRefStoredData()
+{
+    cleanVelRefSD();
+}
+
+AccRefStoredData MultirotorApiBase::getAccRefStoredDataVec()
+{
+    std::vector<std::vector<float>> acc_ref_data = getAccRefStoredData();
+    std::vector<float> acc_ref_x;
+    std::vector<float> acc_ref_y;
+    std::vector<float> acc_ref_z;
+
+    for (int i = 0; i < acc_ref_data.size(); i++)
+    {
+        acc_ref_x.push_back(acc_ref_data[i][0]);
+        acc_ref_y.push_back(acc_ref_data[i][1]);
+        acc_ref_z.push_back(acc_ref_data[i][2]);
+    }
+
+    AccRefStoredData dc = AccRefStoredData(acc_ref_x, acc_ref_y, acc_ref_z);
+    return dc;
+}
+
+// Methods related to the reference rotational rates data gathering
+void MultirotorApiBase::setPqrRefActivation(bool activation, float sample_rate)
+{
+    setPqrRefAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanPqrRefStoredData()
+{
+    cleanPqrRefSD();
+}
+
+PqrRefStoredData MultirotorApiBase::getPqrRefStoredDataVec()
+{
+    std::vector<std::vector<float>> pqr_ref_data = getPqrRefStoredData();
+    std::vector<float> pqr_ref_x;
+    std::vector<float> pqr_ref_y;
+    std::vector<float> pqr_ref_z;
+
+    for (int i = 0; i < pqr_ref_data.size(); i++)
+    {
+        pqr_ref_x.push_back(pqr_ref_data[i][0]);
+        pqr_ref_y.push_back(pqr_ref_data[i][1]);
+        pqr_ref_z.push_back(pqr_ref_data[i][2]);
+    }
+
+    PqrRefStoredData dc = PqrRefStoredData(pqr_ref_x, pqr_ref_y, pqr_ref_z);
+    return dc;
+}
+
+// Methods related to the reference rotational rates data gathering
+void MultirotorApiBase::setPqrActivation(bool activation, float sample_rate)
+{
+    setPqrAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanPqrStoredData()
+{
+    cleanPqrSD();
+}
+
+PqrStoredData MultirotorApiBase::getPqrStoredDataVec()
+{
+    std::vector<std::vector<float>> pqr_data = getPqrStoredData();
+    std::vector<float> pqr_x;
+    std::vector<float> pqr_y;
+    std::vector<float> pqr_z;
+
+    for (int i = 0; i < pqr_data.size(); i++)
+    {
+        pqr_x.push_back(pqr_data[i][0]);
+        pqr_y.push_back(pqr_data[i][1]);
+        pqr_z.push_back(pqr_data[i][2]);
+    }
+
+    PqrStoredData dc = PqrStoredData(pqr_x, pqr_y, pqr_z);
+    return dc;
+}
+
+// Methods related to the reference rotational rates data gathering
+void MultirotorApiBase::setThrustRefActivation(bool activation, float sample_rate)
+{
+    setThrustRefAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanThrustRefStoredData()
+{
+    cleanThrustRefSD();
+}
+
+ThrustRefStoredData MultirotorApiBase::getThrustRefStoredDataVec()
+{
+    std::vector<std::vector<float>> thrust_ref_data = getThrustRefStoredData();
+    std::vector<float> current_thrust_ref_fb;
+    std::vector<float> current_thrust_ref_ff;
+
+    for (int i = 0; i < thrust_ref_data.size(); i++)
+    {
+        current_thrust_ref_fb.push_back(thrust_ref_data[i][0]);
+        current_thrust_ref_ff.push_back(thrust_ref_data[i][1]);
+    }
+
+    ThrustRefStoredData dc = ThrustRefStoredData(current_thrust_ref_fb, current_thrust_ref_ff);
+    return dc;
+}
+
+// Methods related to the omegas (motor rotations) data gathering
+void MultirotorApiBase::setOmegasActivation(bool activation, float sample_rate)
+{
+    setOmegasAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanOmegasStoredData()
+{
+    cleanOmegasSD();
+}
+
+OmegasStoredData MultirotorApiBase::getOmegasStoredDataVec()
+{
+    std::vector<std::vector<float>> omegas_data = getOmegasStoredData();
+    std::vector<float> front_left;
+    std::vector<float> front_right;
+    std::vector<float> back_right;
+    std::vector<float> back_left;
+
+    for (int i = 0; i < omegas_data.size(); i++)
+    {
+        front_left.push_back(omegas_data[i][0]);
+        front_right.push_back(omegas_data[i][1]);
+        back_right.push_back(omegas_data[i][2]);
+        back_left.push_back(omegas_data[i][3]);
+    }
+
+    OmegasStoredData dc = OmegasStoredData(front_left, front_right, back_right, back_left);
+    return dc;
+}
+
+// Methods related to the reference yaw data gathering
+void MultirotorApiBase::setYawRefActivation(bool activation, float sample_rate)
+{
+    setYawRefAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanYawRefStoredData()
+{
+    cleanYawRefSD();
+}
+
+YawRefStoredData MultirotorApiBase::getYawRefStoredDataVec()
+{
+    std::vector<std::vector<float>> yaw_ref_data = getYawRefStoredData();
+    std::vector<float> yaw_ref;
+    std::vector<float> yaw_ref_corrected;
+
+    for (int i = 0; i < yaw_ref_data.size(); i++)
+    {
+        yaw_ref.push_back(yaw_ref_data[i][0]);
+        yaw_ref_corrected.push_back(yaw_ref_data[i][1]);
+    }
+
+    YawRefStoredData dc = YawRefStoredData(yaw_ref, yaw_ref_corrected);
+    return dc;
+}
+
+// Methods related to the orientation data gathering
+void MultirotorApiBase::setOrientationActivation(bool activation, float sample_rate)
+{
+    setOrientationAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanOrientationStoredData()
+{
+    cleanOrientationSD();
+}
+
+OrientationStoredData MultirotorApiBase::getOrientationStoredDataVec()
+{
+    std::vector<std::vector<float>> orientation_data = getOrientationStoredData();
+    std::vector<float> orientation_x;
+    std::vector<float> orientation_y;
+    std::vector<float> orientation_z;
+
+    for (int i = 0; i < orientation_data.size(); i++)
+    {
+        orientation_x.push_back(orientation_data[i][0]);
+        orientation_y.push_back(orientation_data[i][1]);
+        orientation_z.push_back(orientation_data[i][2]);
+    }
+
+    OrientationStoredData dc = OrientationStoredData(orientation_x, orientation_y, orientation_z);
+    return dc;
+}
+
+// Methods related to the position integrator data gathering
+void MultirotorApiBase::setPositionIntegratorActivation(bool activation, float sample_rate)
+{
+    setPositionIntegratorAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanPositionIntegratorStoredData()
+{
+    cleanPositionIntegratorSD();
+}
+
+PositionIntegratorStoredData MultirotorApiBase::getPositionIntegratorStoredDataVec()
+{
+    std::vector<std::vector<float>> position_integrator_data = getPositionIntegratorStoredData();
+    std::vector<float> position_integrator_x;
+    std::vector<float> position_integrator_y;
+    std::vector<float> position_integrator_z;
+
+    for (int i = 0; i < position_integrator_data.size(); i++)
+    {
+        position_integrator_x.push_back(position_integrator_data[i][0]);
+        position_integrator_y.push_back(position_integrator_data[i][1]);
+        position_integrator_z.push_back(position_integrator_data[i][2]);
+    }
+
+    PositionIntegratorStoredData dc = PositionIntegratorStoredData(position_integrator_x, position_integrator_y, position_integrator_z);
+    return dc;
+}
+
+
+// Methods related to the thrust PI controller data gathering
+void MultirotorApiBase::setThrustPiActivation(bool activation, float sample_rate)
+{
+    setThrustPiAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanThrustPiStoredData()
+{
+    cleanThrustPiSD();
+}
+
+ThrustPiStoredData MultirotorApiBase::getThrustPiStoredDataVec()
+{
+    std::vector<std::vector<float>> thrust_PI_data = getThrustPiStoredData();
+    std::vector<float> thrust_P;
+    std::vector<float> thrust_I;
+
+    for (int i = 0; i < thrust_PI_data.size(); i++)
+    {
+        thrust_P.push_back(thrust_PI_data[i][0]);
+        thrust_I.push_back(thrust_PI_data[i][1]);
+    }
+
+    ThrustPiStoredData dc = ThrustPiStoredData(thrust_P, thrust_I);
+    return dc;
 }
 
 // Methods related to the camera data gathering
@@ -189,16 +603,16 @@ void MultirotorApiBase::cleanPositionStoredData()
 
 PositionStoredData MultirotorApiBase::getPositionStoredDataVec()
 {
-    std::vector<msr::airlib::Vector3r> position_data = getPositionStoredData();
+    std::vector<std::vector<float>> position_data = getPositionStoredData();
     std::vector<float> positions_x;
     std::vector<float> positions_y;
     std::vector<float> positions_z;
 
     for (int i = 0; i < position_data.size(); i++)
     {
-        positions_x.push_back(position_data[i].x());
-        positions_y.push_back(position_data[i].y());
-        positions_z.push_back(position_data[i].z());
+        positions_x.push_back(position_data[i][0]);
+        positions_y.push_back(position_data[i][1]);
+        positions_z.push_back(position_data[i][2]);
     }
 
     PositionStoredData dc = PositionStoredData(positions_x, positions_y, positions_z);
@@ -349,6 +763,12 @@ GPSStoredData MultirotorApiBase::getGPSStoredDataVec()
         epvs, velocity_x, velocity_y, velocity_z, fix_types,
         time_utcs, is_valids);
     return dc;
+}
+
+// Methods related to the drone teleportation
+void MultirotorApiBase::setTeleportYawRef(float yaw_angle_ref)
+{
+    setTeleportYawReference(yaw_angle_ref);
 }
 
 // Methods related to the drone failures
@@ -631,34 +1051,33 @@ bool MultirotorApiBase::moveOnPath(const vector<Vector3r>& path, float velocity,
     //else no need to change velocities for last segments
 
     //setup current position on path to 0 offset
-    PathPosition cur_path_loc, next_path_loc;
-    cur_path_loc.seg_index = 0;
-    cur_path_loc.offset = 0;
-    cur_path_loc.position = path3d[0];
+    cur_path_loc_obj.seg_index = 0;
+    cur_path_loc_obj.offset = 0;
+    cur_path_loc_obj.position = path3d[0];
 
     float lookahead_error_increasing = 0;
     float lookahead_error = 0;
     Waiter waiter(getCommandPeriod(), timeout_sec, getCancelToken());
 
     //initialize next path position
-    setNextPathPosition(path3d, path_segs, cur_path_loc, lookahead + lookahead_error, next_path_loc);
+    setNextPathPosition(path3d, path_segs, cur_path_loc_obj, lookahead + lookahead_error, next_path_loc_obj);
     float overshoot = 0;
     float goal_dist = 0;
 
     //until we are at the end of the path (last seg is always zero size)
-    while (!waiter.isTimeout() && (next_path_loc.seg_index < path_segs.size()-1 || goal_dist > 0)
+    while (!waiter.isTimeout() && (next_path_loc_obj.seg_index < path_segs.size()-1 || goal_dist > 0)
         ) { //current position is approximately at the last end point
 
-        float seg_velocity = path_segs.at(next_path_loc.seg_index).seg_velocity;
-        float path_length_remaining = path_length - path_segs.at(cur_path_loc.seg_index).seg_path_length - cur_path_loc.offset;
+        float seg_velocity = path_segs.at(next_path_loc_obj.seg_index).seg_velocity;
+        float path_length_remaining = path_length - path_segs.at(cur_path_loc_obj.seg_index).seg_path_length - cur_path_loc_obj.offset;
         if (seg_velocity > getMultirotorApiParams().min_vel_for_breaking && path_length_remaining <= breaking_dist) {
             seg_velocity = getMultirotorApiParams().breaking_vel;
             //Utils::logMessage("path_length_remaining = %f, Switched to breaking vel %f", path_length_remaining, seg_velocity);
         }
 
         //send drone command to get to next lookahead
-        moveToPathPosition(next_path_loc.position, seg_velocity, drivetrain, 
-            yaw_mode, path_segs.at(cur_path_loc.seg_index).start_z);
+        moveToPathPosition(next_path_loc_obj.position, seg_velocity, drivetrain, 
+            yaw_mode, path_segs.at(cur_path_loc_obj.seg_index).start_z);
 
         //sleep for rest of the cycle
         if (!waiter.sleep())
@@ -696,10 +1115,10 @@ bool MultirotorApiBase::moveOnPath(const vector<Vector3r>& path, float velocity,
         */
 
         //how much have we moved towards last goal?
-        const Vector3r& goal_vect = next_path_loc.position - cur_path_loc.position;
+        const Vector3r& goal_vect = next_path_loc_obj.position - cur_path_loc_obj.position;
 
         if (!goal_vect.isZero()) { //goal can only be zero if we are at the end of path
-            const Vector3r& actual_vect = getPosition() - cur_path_loc.position;
+            const Vector3r& actual_vect = getPosition() - cur_path_loc_obj.position;
 
             //project actual vector on goal vector
             const Vector3r& goal_normalized = goal_vect.normalized();    
@@ -730,15 +1149,15 @@ bool MultirotorApiBase::moveOnPath(const vector<Vector3r>& path, float velocity,
             waiter.complete();
         }
 
-        // Utils::logMessage("PF: cur=%s, goal_dist=%f, cur_path_loc=%s, next_path_loc=%s, lookahead_error=%f",
+        // Utils::logMessage("PF: cur=%s, goal_dist=%f, cur_path_loc=%s, next_path_loc_obj=%s, lookahead_error=%f",
         //     VectorMath::toString(getPosition()).c_str(), goal_dist, VectorMath::toString(cur_path_loc.position).c_str(),
-        //     VectorMath::toString(next_path_loc.position).c_str(), lookahead_error);
+        //     VectorMath::toString(next_path_loc_obj.position).c_str(), lookahead_error);
 
         //if drone moved backward, we don't want goal to move backward as well
         //so only climb forward on the path, never back. Also note >= which means
         //we climb path even if distance was 0 to take care of duplicated points on path
         if (goal_dist >= 0) {
-            overshoot = setNextPathPosition(path3d, path_segs, cur_path_loc, goal_dist, cur_path_loc);
+            overshoot = setNextPathPosition(path3d, path_segs, cur_path_loc_obj, goal_dist, cur_path_loc_obj);
             if (overshoot)
                 Utils::log(Utils::stringf("overshoot=%f", overshoot));
         }
@@ -746,7 +1165,7 @@ bool MultirotorApiBase::moveOnPath(const vector<Vector3r>& path, float velocity,
         //    Utils::logMessage("goal_dist was negative: %f", goal_dist);
 
         //compute next target on path
-        overshoot = setNextPathPosition(path3d, path_segs, cur_path_loc, lookahead + lookahead_error, next_path_loc);
+        overshoot = setNextPathPosition(path3d, path_segs, cur_path_loc_obj, lookahead + lookahead_error, next_path_loc_obj);
     }
 
     return waiter.isComplete();
@@ -1043,6 +1462,7 @@ void MultirotorApiBase::moveToPathPosition(const Vector3r& dest, float velocity,
 
     //yaw for the direction of travel
     adjustYaw(cur_dest, drivetrain, yaw_mode);
+    yaw_ref_deg = yaw_mode.yaw_or_rate;
 
     //find velocity vector
     Vector3r velocity_vect;
