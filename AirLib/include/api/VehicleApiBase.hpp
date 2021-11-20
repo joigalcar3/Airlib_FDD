@@ -76,10 +76,349 @@ public:
     //    throw VehicleCommandNotImplementedException("getActuation API is not supported for this vehicle");
     //}
 
+    virtual void droneTeleportReset()
+    {
+        throw VehicleCommandNotImplementedException("droneTeleportReset API is not supported for this vehicle");
+    }
+
     virtual real_T getActuation(unsigned int actuator_index)
     {
         unused(actuator_index);
         throw VehicleCommandNotImplementedException("getActuation API is not supported for this vehicle");
+    }
+
+    virtual std::vector<real_T> actuator_dyn(Kinematics::State previous)
+    {
+        unused(previous);
+        throw VehicleCommandNotImplementedException("actuator_dyn API is not supported for this vehicle");
+    }
+
+    virtual void setNextPathLocObj(Pose pose)
+    {
+        unused(pose);
+        throw VehicleCommandNotImplementedException("setNextPathLocObj API is not supported for this vehicle");
+    }
+
+    // Methods related to the reference position data gathering
+    virtual void storePosRefData()
+    {
+        throw VehicleCommandNotImplementedException("storePosRefData API is not supported for this vehicle");
+    }
+
+    virtual void setPosRefAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setPosRefAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanPosRefSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanPosRefSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getPosRefStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getPosRefStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the position error data gathering
+    virtual void storePosErrorData()
+    {
+        throw VehicleCommandNotImplementedException("storePosErrorData API is not supported for this vehicle");
+    }
+
+    virtual void setPosErrorAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setPosErrorAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanPosErrorSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanPosErrorSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getPosErrorStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getPosErrorStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the position error derivative data gathering
+    virtual void storePosErrorDotData()
+    {
+        throw VehicleCommandNotImplementedException("storePosErrorDotData API is not supported for this vehicle");
+    }
+
+    virtual void setPosErrorDotAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setPosErrorDotAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanPosErrorDotSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanPosErrorDotSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getPosErrorDotStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getPosErrorDotStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the reference velocity data gathering
+    virtual void storeVelRefData()
+    {
+        throw VehicleCommandNotImplementedException("storeVelRefData API is not supported for this vehicle");
+    }
+
+    virtual void setVelRefAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setVelRefAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanVelRefSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanVelRefSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getVelRefStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getVelRefStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the velocity data gathering
+    virtual void storeVelData()
+    {
+        throw VehicleCommandNotImplementedException("storeVelData API is not supported for this vehicle");
+    }
+
+    virtual void setVelAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setVelAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanVelSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanVelSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getVelStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getVelStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the reference acceleration data gathering
+    virtual void storeAccRefData()
+    {
+        throw VehicleCommandNotImplementedException("storeAccRefData API is not supported for this vehicle");
+    }
+
+    virtual void setAccRefAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setAccRefAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanAccRefSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanAccRefSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getAccRefStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getAccRefStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the reference rotational rates data gathering
+    virtual void storePqrRefData()
+    {
+        throw VehicleCommandNotImplementedException("storePqrRefData API is not supported for this vehicle");
+    }
+
+    virtual void setPqrRefAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setPqrRefAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanPqrRefSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanPqrRefSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getPqrRefStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getPqrRefStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the rotational rates data gathering
+    virtual void storePqrData()
+    {
+        throw VehicleCommandNotImplementedException("storePqrData API is not supported for this vehicle");
+    }
+
+    virtual void setPqrAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setPqrAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanPqrSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanPqrSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getPqrStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getPqrStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the reference thrust data gathering
+    virtual void storeThrustRefData()
+    {
+        throw VehicleCommandNotImplementedException("storeThrustRefData API is not supported for this vehicle");
+    }
+
+    virtual void setThrustRefAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setThrustRefAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanThrustRefSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanThrustRefSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getThrustRefStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getThrustRefStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the omega (motor rotations) data gathering
+    virtual void storeOmegasData()
+    {
+        throw VehicleCommandNotImplementedException("storeOmegasData API is not supported for this vehicle");
+    }
+
+    virtual void setOmegasAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setOmegasAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanOmegasSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanOmegasSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getOmegasStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getOmegasStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the reference yaw data gathering
+    virtual void storeYawRefData()
+    {
+        throw VehicleCommandNotImplementedException("storeYawRefData API is not supported for this vehicle");
+    }
+
+    virtual void setYawRefAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setYawRefAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanYawRefSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanYawRefSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getYawRefStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getYawRefStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the orientation data gathering
+    virtual void storeOrientationData()
+    {
+        throw VehicleCommandNotImplementedException("storeOrientationData API is not supported for this vehicle");
+    }
+
+    virtual void setOrientationAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setOrientationAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanOrientationSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanOrientationSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getOrientationStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getOrientationStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the position integrator data gathering
+    virtual void storePositionIntegratorData()
+    {
+        throw VehicleCommandNotImplementedException("storePositionIntegratorData API is not supported for this vehicle");
+    }
+
+    virtual void setPositionIntegratorAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setPositionIntegratorAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanPositionIntegratorSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanPositionIntegratorSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getPositionIntegratorStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getPositionIntegratorStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the thrust PI controller data gathering
+    virtual void storeThrustPiData()
+    {
+        throw VehicleCommandNotImplementedException("storeThrustPiData API is not supported for this vehicle");
+    }
+
+    virtual void setThrustPiAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setThrustPiAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanThrustPiSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanThrustPiSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getThrustPiStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getThrustPiStoredData API is not supported for this vehicle");
     }
 
     // Methods related to the Camera data gathering
@@ -172,7 +511,7 @@ public:
         throw VehicleCommandNotImplementedException("cleanPositionSD API is not supported for this vehicle");
     }
 
-    virtual std::vector<msr::airlib::Vector3r> getPositionStoredData()
+    virtual std::vector<std::vector<float>> getPositionStoredData()
     {
         throw VehicleCommandNotImplementedException("getPositionStoredData API is not supported for this vehicle");
     }
@@ -245,6 +584,13 @@ public:
     virtual std::vector<msr::airlib::GpsBase::Output> getGPSStoredData()
     {
         throw VehicleCommandNotImplementedException("getGPSStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the drone teleportation
+    virtual void setTeleportYawReference(float yaw_angle_ref)
+    {
+        unused(yaw_angle_ref);
+        throw VehicleCommandNotImplementedException("setTeleportYawReference API is not supported for this vehicle");
     }
 
     // Methods related to the drone failure

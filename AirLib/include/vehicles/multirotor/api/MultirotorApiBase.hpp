@@ -91,6 +91,49 @@ public: //these APIs uses above low level APIs
     virtual bool land(float timeout_sec);
     virtual bool goHome(float timeout_sec);
     virtual bool dummyprinter(float numerito);
+    virtual void setNextPathLocObj(Pose pose);
+    virtual void setPosRefActivation(bool activation, float sample_rate);
+    virtual void cleanPosRefStoredData();
+    virtual PosRefStoredData getPosRefStoredDataVec();
+    virtual void setPosErrorActivation(bool activation, float sample_rate);
+    virtual void cleanPosErrorStoredData();
+    virtual PosErrorStoredData getPosErrorStoredDataVec();
+    virtual void setPosErrorDotActivation(bool activation, float sample_rate);
+    virtual void cleanPosErrorDotStoredData();
+    virtual PosErrorDotStoredData getPosErrorDotStoredDataVec();
+    virtual void setVelRefActivation(bool activation, float sample_rate);
+    virtual void cleanVelRefStoredData();
+    virtual VelRefStoredData getVelRefStoredDataVec();
+    virtual void setVelActivation(bool activation, float sample_rate);
+    virtual void cleanVelStoredData();
+    virtual VelStoredData getVelStoredDataVec();
+    virtual void setAccRefActivation(bool activation, float sample_rate);
+    virtual void cleanAccRefStoredData();
+    virtual AccRefStoredData getAccRefStoredDataVec();
+    virtual void setPqrRefActivation(bool activation, float sample_rate);
+    virtual void cleanPqrRefStoredData();
+    virtual PqrRefStoredData getPqrRefStoredDataVec();
+    virtual void setPqrActivation(bool activation, float sample_rate);
+    virtual void cleanPqrStoredData();
+    virtual PqrStoredData getPqrStoredDataVec();
+    virtual void setThrustRefActivation(bool activation, float sample_rate);
+    virtual void cleanThrustRefStoredData();
+    virtual ThrustRefStoredData getThrustRefStoredDataVec();
+    virtual void setOmegasActivation(bool activation, float sample_rate);
+    virtual void cleanOmegasStoredData();
+    virtual OmegasStoredData getOmegasStoredDataVec();
+    virtual void setYawRefActivation(bool activation, float sample_rate);
+    virtual void cleanYawRefStoredData();
+    virtual YawRefStoredData getYawRefStoredDataVec();
+    virtual void setOrientationActivation(bool activation, float sample_rate);
+    virtual void cleanOrientationStoredData();
+    virtual OrientationStoredData getOrientationStoredDataVec();
+    virtual void setPositionIntegratorActivation(bool activation, float sample_rate);
+    virtual void cleanPositionIntegratorStoredData();
+    virtual PositionIntegratorStoredData getPositionIntegratorStoredDataVec();
+    virtual void setThrustPiActivation(bool activation, float sample_rate);
+    virtual void cleanThrustPiStoredData();
+    virtual ThrustPiStoredData getThrustPiStoredDataVec();
     virtual void setCameraActivation(bool activation, float sample_rate, const std::vector<ImageCaptureBase::ImageRequest>& request, VehicleSimApiBase* const &api);
     virtual void cleanCameraStoredData();
     virtual void saveCameraStoredData(std::string path);
@@ -112,6 +155,7 @@ public: //these APIs uses above low level APIs
     virtual void setGPSActivation(bool activation, float sample_rate);
     virtual void cleanGPSStoredData();
     virtual GPSStoredData getGPSStoredDataVec();
+    virtual void setTeleportYawRef(float yaw_angle_ref);
     virtual void setDamageCoefficients(float new_coeff_1, float new_coeff_2, float new_coeff_3, float new_coeff_4);
     virtual void setLockedProppellers(bool locked_1, bool locked_2, bool locked_3, bool locked_4);
     virtual void setLockedPropellerCoefficients(float new_coeff_1, float new_coeff_2, float new_coeff_3, float new_coeff_4);
@@ -226,6 +270,21 @@ protected: //utility methods
     virtual Quaternionr getOrientation() const
     {
         return getKinematicsEstimated().pose.orientation;
+    }
+
+    virtual Vector3r getPosRef() const
+    {
+        return next_path_loc_obj.position;
+    }
+
+    virtual real_T getYawRef() const
+    {
+        return yaw_ref_deg;
+    }
+
+    virtual void setYawRef(real_T yaw_angle_ref)
+    {
+        yaw_ref_deg = yaw_angle_ref;
     }
 
     CancelToken& getCancelToken()
@@ -385,6 +444,10 @@ private: //variables
     float approx_zero_vel_ = 0.05f;
     float approx_zero_angular_vel_ = 0.01f;
     RotorStates rotor_states_;
+
+    PathPosition cur_path_loc_obj, next_path_loc_obj;
+    real_T yaw_ref_deg = 0;
+
 };
 
 }} //namespace

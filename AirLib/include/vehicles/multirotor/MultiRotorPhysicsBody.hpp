@@ -89,6 +89,13 @@ public:
         return PWMs;
     }
 
+    std::vector<real_T> getPWMrotors_INDI(Kinematics::State previous) override
+    {
+        std::vector<real_T> PWMs;
+        PWMs = vehicle_api_->actuator_dyn(previous);
+        return PWMs;
+    }
+
     virtual void collectCameraData()
     {
         vehicle_api_->storeCameraData();

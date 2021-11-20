@@ -333,7 +333,8 @@ public: //consts
     static constexpr double MeanMagField = 3.12E-5; //Tesla, https://en.wikipedia.org/wiki/Dipole_model_of_the_Earth's_magnetic_field
     static constexpr float SeaLevelPressure = 101325.0f; //Pascal
     static constexpr float SeaLevelAirDensity = 1.225f; //kg/m^3
-    static constexpr float Gravity = 9.80665f;    //m/s^2
+    static constexpr float Gravity = 9.8124f;    //m/s^2  The local gravity at Delft
+    //static constexpr float Gravity = 9.80665f;    //m/s^2
     static constexpr float Radius = EARTH_RADIUS; //m
     static constexpr float SpeedOfLight = 299792458.0f; //m
     static constexpr float Obliquity = Utils::degreesToRadians(23.4397f); 

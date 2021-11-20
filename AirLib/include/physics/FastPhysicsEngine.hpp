@@ -28,17 +28,6 @@ namespace msr {
             FastPhysicsEngine(bool enable_ground_lock = true, Vector3r wind = Vector3r::Zero())
                 : enable_ground_lock_(enable_ground_lock), wind_(wind)
             {
-                //real_T control_signal_filter_tc = 0.025f;    //time constant for low pass filter
-                //control_signal_filter_w1.initialize(control_signal_filter_tc, 0, 0);
-                //control_signal_filter_w2.initialize(control_signal_filter_tc, 0, 0);
-                //control_signal_filter_w3.initialize(control_signal_filter_tc, 0, 0);
-                //control_signal_filter_w4.initialize(control_signal_filter_tc, 0, 0);
-
-                //control_signal_filter_w1.reset();
-                //control_signal_filter_w2.reset();
-                //control_signal_filter_w3.reset();
-                //control_signal_filter_w4.reset();
-
             }
 
             //*** Start: UpdatableState implementation ***//
@@ -94,7 +83,11 @@ namespace msr {
                 TTimeDelta dt = clock()->updateSince(body.last_kinematics_time);
 
                 body.lock();
-
+                if (initial_time == -1)
+                {
+                    previous = body.getKinematics();
+                }
+                initial_time = 1;
                 //get current kinematics state of the body - this state existed since last dt seconds
                 const Kinematics::State& current = body.getKinematics();
                 Kinematics::State next;
@@ -127,7 +120,7 @@ namespace msr {
 
                 //Utils::log(Utils::stringf("T-VEL %s %" PRIu64 ": ", 
                 //    VectorMath::toString(next.twist.linear).c_str(), clock()->getStepCount()));
-
+                previous = current;
                 body.setWrench(next_wrench);
                 body.updateKinematics(next);
                 body.unlock();
@@ -493,7 +486,7 @@ namespace msr {
                 std::vector<real_T> P32_output;
                 if (bias != -1)
                 {
-                    real_T A1 = 1;
+                    real_T A1 = 1.0f;
                     P32_output = { A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 };
                 }
                 else
@@ -503,21 +496,21 @@ namespace msr {
                 return P32_output;
             }
 
-            static std::vector<real_T> Fn(real_T x, int n = 1, real_T bias = 1, real_T U = 1, real_T alpha = 0, real_T beta = 0)
+            static std::vector<real_T> Fn(real_T x, int n = 1, real_T bias = 1.0f, real_T U = 1.0f, real_T alpha = 0.0f, real_T beta = 0.0f)
             {
 
                 std::vector<real_T> A_F;
                 if (bias != 0)
                 {
-                    A_F.push_back(1);
+                    A_F.push_back(1.0f);
                 }
 
                 for (int i = 0; i < n; i++)
                 {
-                    real_T sine_component = sin((i+1)*x)*U;
+                    real_T sine_component = sin((i+1.0f)*x)*U;
                     std::vector<real_T> Ai1 = P32(alpha, beta, sine_component);
 
-                    real_T cosine_component = cos((i+1)*x)*U;
+                    real_T cosine_component = cos((i+1.0f)*x)*U;
                     std::vector<real_T> Ai2 = P32(alpha, beta, cosine_component);
 
                     A_F.insert(A_F.end(), Ai1.begin(), Ai1.end());
@@ -531,18 +524,18 @@ namespace msr {
             {
                 if (uy == 0 && vx == 0)
                 {
-                    return 0;
+                    return 0.0f;
                 }
 
                 real_T beta = atan2(uy, vx);
                 if (beta < 0)
                 {
-                    beta = 2 * M_PIf + beta;
+                    beta = 2.0f * M_PIf + beta;
                 }
                 beta = beta - M_PIf / 2;
                 if (beta < 0)
                 {
-                    beta = 2 * M_PIf + beta;
+                    beta = 2.0f * M_PIf + beta;
                 }
                 return beta;
             }
@@ -553,20 +546,88 @@ namespace msr {
                 return result >= 0 ? result : result + denominator;
             }
 
+            real_T gaussian_noise(real_T clean_number, real_T mean, real_T variance)
+            {
+                real_T standard_deviation = sqrt(variance);
+                std::normal_distribution<double> distribution(mean, standard_deviation);
+                real_T dirty_number = clean_number + distribution(generator);
+                return dirty_number;
+            }
+
+            Vector3r gaussian_noise(Vector3r clean_numbers, Vector3r means, Vector3r variances)
+            {
+                real_T dirty_number_x = gaussian_noise(clean_numbers.x(), means.x(), variances.x());
+                real_T dirty_number_y = gaussian_noise(clean_numbers.y(), means.y(), variances.y());
+                real_T dirty_number_z = gaussian_noise(clean_numbers.z(), means.z(), variances.z());
+                Vector3r dirty_number(dirty_number_x, dirty_number_y, dirty_number_z);
+                return dirty_number;
+            }
+
+            real_T apply_process_noise(real_T clean_number, real_T mean, real_T variance)
+            {
+                if (activate_process_noise)
+                {
+                    real_T dirty_number = gaussian_noise(clean_number, mean, variance);
+                    return dirty_number;
+                }
+                else
+                {
+                    return clean_number;
+                }
+            }
+
+            Vector3r apply_process_noise(Vector3r clean_number, Vector3r mean, Vector3r variance)
+            {
+                if (activate_process_noise)
+                {
+                    Vector3r dirty_number = gaussian_noise(clean_number, mean, variance);
+                    return dirty_number;
+                }
+                else
+                {
+                    return clean_number;
+                }
+            }
+
             void getNextKinematicsNoCollisionBB2(TTimeDelta dt, PhysicsBody& body, const Kinematics::State& current,
                 Kinematics::State& next, Wrench& next_wrench, const Vector3r& wind, float prop_damage[])
             {
                 const real_T dt_real = static_cast<real_T>(dt);
-                Vector3r avg_linear = current.twist.linear + current.accelerations.linear * (0.5f * dt_real);
-                Vector3r avg_angular = current.twist.angular + current.accelerations.angular * (0.5f * dt_real);
+                Vector3r avg_linear;
+                Vector3r avg_angular;
+                if (use_average_values)
+                {
+                    avg_linear = current.twist.linear + current.accelerations.linear * (0.5f * dt_real);
+                    avg_angular = current.twist.angular + current.accelerations.angular * (0.5f * dt_real);
+                }
+                else
+                {
+                    avg_linear = current.twist.linear;
+                    avg_angular = current.twist.angular;
+                }
+                
 
-                // Obtain PWM of the rotors and their rotational speeds
-                std::vector<real_T> PWMs = body.getPWMrotors();
+                std::vector<real_T> PWMs = body.getPWMrotors_INDI(previous);
 
-                real_T omega1 = sqrt(PWMs[2] * max_w_squared);
-                real_T omega2 = sqrt(PWMs[0] * max_w_squared);
-                real_T omega3 = sqrt(PWMs[3] * max_w_squared);
-                real_T omega4 = sqrt(PWMs[1] * max_w_squared);
+                real_T omega1 = PWMs[0];
+                if (omega1 <= 1) { omega1 = 0.0f; }
+                real_T omega2 = PWMs[1];
+                if (omega2 <= 1) { omega2 = 0.0f; }
+                real_T omega3 = PWMs[2];
+                if (omega3 <= 1) { omega3 = 0.0f; }
+                real_T omega4 = PWMs[3];
+                if (omega4 <= 1) { omega4 = 0.0f; }
+
+                // Correct body mass and inertia
+                real_T n_broken_prop = 0;
+                for (int i = 0; i < 4; i++)
+                {
+                    if (PWMs[i] < 1)
+                    {
+                        n_broken_prop++;
+                    }
+                }
+                body.choose_inertia(n_broken_prop, b, l);
 
                 // Circular area descibed by the rotating propeller
                 real_T Area = M_PIf * R * R;
@@ -585,15 +646,15 @@ namespace msr {
                 real_T alpha;
                 if (Va >= 0.01)
                 {
-                    alpha = asin(w / Va) * 57.3;
+                    alpha = asin(w / Va) * rad2deg_factor;
                 }
                 else
                 {
-                    alpha = 0;
+                    alpha = 0.0f;
                 }
 
                 // Normal force from the static wind tunnel test
-                static std::vector<real_T> AoA_airframe{ 90, 75, 60, 45, 30, 15, 0, -15, -30, -45, -75, -90 };
+                static std::vector<real_T> AoA_airframe{ 90.0f, 75.0f, 60.0f, 45.0f, 30.0f, 15.0f, 0.0f, -15.0f, -30.0f, -45.0f, -75.0f, -90.0f };
                 static std::vector<real_T> Cz_airframe{ -0.0115, -0.0124, -0.0137, -0.0128, -0.0100, -0.0063, 0.0014, 0.0045, 0.007, 0.0094, 0.0119, 0.0120 };
                 if (AoA_airframe[0] > AoA_airframe[1])
                 {
@@ -602,21 +663,21 @@ namespace msr {
                 }
 
                 real_T CN_airframe = interp1(AoA_airframe, Cz_airframe, alpha);
-                real_T T0 = -CN_airframe * Va * 2;
+                real_T T0 = -CN_airframe * Va * 2.0f;
 
                 // normal force correctness from the flight data
                 real_T w_constraint = w;
                 if (w_constraint <= -6)
                 {
-                    w_constraint = -6;
+                    w_constraint = -6.0f;
                 }
                 else if (w_constraint > 2)
                 {
-                    w_constraint = 2;
+                    w_constraint = 2.0f;
                 }
                 real_T u_constraint = u;
                 real_T v_constraint = v;
-                real_T uv_scale = 8 / sqrt(u * u + v * v);
+                real_T uv_scale = 8.0f / sqrt(u * u + v * v);
                 if (uv_scale <= 1)
                 {
                     u_constraint = uv_scale * u;
@@ -631,10 +692,10 @@ namespace msr {
                 std::vector<int> SM{ 1, 1, -1, -1 };
                 std::vector<int> SN{ signr * 1, signr * -1, signr * 1, signr * -1 };
 
-                Vector3r d1(l, -b, 0);
-                Vector3r d2(l, b, 0);
-                Vector3r d3(-l, b, 0);
-                Vector3r d4(-l, -b, 0);
+                Vector3r d1(l, -b, 0.0f);
+                Vector3r d2(l, b, 0.0f);
+                Vector3r d3(-l, b, 0.0f);
+                Vector3r d4(-l, -b, 0.0f);
 
                 // The speed in u, vand w experienced by each rotor
                 Vector3r V1 = avg_angular.cross(d1) + linear_vel_body;
@@ -656,33 +717,33 @@ namespace msr {
 
                 // Computation of the advance ratio
                 real_T vv1 = va1 / (omega1 * R);
-                if (isnan(vv1) || isinf(vv1)) { vv1 = 0; }
+                if (isnan(vv1) || isinf(abs(vv1))) { vv1 = 0.0f; }
                 if (vv1 >= 0.6) { vv1 = 0.6; }
 
                 real_T vv2 = va2 / (omega2 * R);
-                if (isnan(vv2) || isinf(vv2)) { vv2 = 0; }
+                if (isnan(vv2) || isinf(abs(vv2))) { vv2 = 0.0f; }
                 if (vv2 >= 0.6) { vv2 = 0.6; }
 
                 real_T vv3 = va3 / (omega3 * R);
-                if (isnan(vv3) || isinf(vv3)) { vv3 = 0; }
+                if (isnan(vv3) || isinf(abs(vv3))) { vv3 = 0.0f; }
                 if (vv3 >= 0.6) { vv3 = 0.6; }
 
                 real_T vv4 = va4 / (omega4 * R);
-                if (isnan(vv4) || isinf(vv4)) { vv4 = 0; }
+                if (isnan(vv4) || isinf(abs(vv4))) { vv4 = 0.0f; }
                 if (vv4 >= 0.6) { vv4 = 0.6; }
 
                 // Computation of the angle of attack of each propeller
-                real_T alpha1 = atan(w1 / sqrt(u1 * u1 + v1 * v1)) * 57.3;
-                if (isnan(alpha1) || isinf(abs(alpha1))) { alpha1 = 0; }
+                real_T alpha1 = atan(w1 / sqrt(u1 * u1 + v1 * v1)) * rad2deg_factor;
+                if (isnan(alpha1) || isinf(abs(alpha1))) { alpha1 = 0.0f; }
 
-                real_T alpha2 = atan(w2 / sqrt(u2 * u2 + v2 * v2)) * 57.3;
-                if (isnan(alpha2) || isinf(abs(alpha2))) { alpha2 = 0; }
+                real_T alpha2 = atan(w2 / sqrt(u2 * u2 + v2 * v2)) * rad2deg_factor;
+                if (isnan(alpha2) || isinf(abs(alpha2))) { alpha2 = 0.0f; }
 
-                real_T alpha3 = atan(w3 / sqrt(u3 * u3 + v3 * v3)) * 57.3;
-                if (isnan(alpha3) || isinf(abs(alpha3))) { alpha3 = 0; }
+                real_T alpha3 = atan(w3 / sqrt(u3 * u3 + v3 * v3)) * rad2deg_factor;
+                if (isnan(alpha3) || isinf(abs(alpha3))) { alpha3 = 0.0f; }
 
-                real_T alpha4 = atan(w4 / sqrt(u4 * u4 + v4 * v4)) * 57.3;
-                if (isnan(alpha4) || isinf(abs(alpha4))) { alpha4 = 0; }
+                real_T alpha4 = atan(w4 / sqrt(u4 * u4 + v4 * v4)) * rad2deg_factor;
+                if (isnan(alpha4) || isinf(abs(alpha4))) { alpha4 = 0.0f; }
 
                 // The density times the square of the radius of the propeller times the
                 // square of the rotational speed
@@ -727,65 +788,77 @@ namespace msr {
                 // Identification of a Quadrotor Subjected to Rotor Failures in the
                 // High - Speed Flight Regime", Equation 20.
                 real_T mu1 = sqrt(u1 * u1 + v1 * v1) / (omega1 * R);
-                if (isnan(mu1) || isinf(abs(mu1))) { mu1 = 0; }
+                if (isnan(mu1) || isinf(abs(mu1))) { mu1 = 0.0f; }
                 real_T mu2 = sqrt(u2 * u2 + v2 * v2) / (omega2 * R);
-                if (isnan(mu2) || isinf(abs(mu2))) { mu2 = 0; }
+                if (isnan(mu2) || isinf(abs(mu2))) { mu2 = 0.0f; }
                 real_T mu3 = sqrt(u3 * u3 + v3 * v3) / (omega3 * R);
-                if (isnan(mu3) || isinf(abs(mu3))) { mu3 = 0; }
+                if (isnan(mu3) || isinf(abs(mu3))) { mu3 = 0.0f; }
                 real_T mu4 = sqrt(u4 * u4 + v4 * v4) / (omega4 * R);
-                if (isnan(mu4) || isinf(abs(mu4))) { mu4 = 0; }
+                if (isnan(mu4) || isinf(abs(mu4))) { mu4 = 0.0f; }
 
                 // Similar to the sideslipe angle equation
                 real_T lc1 = w1 / (omega1 * R);
-                if (isnan(lc1) || isinf(abs(lc1))) { lc1 = 0; }
+                if (isnan(lc1) || isinf(abs(lc1))) { lc1 = 0.0f; }
                 real_T lc2 = w2 / (omega2 * R);
-                if (isnan(lc2) || isinf(abs(lc2))) { lc2 = 0; }
+                if (isnan(lc2) || isinf(abs(lc2))) { lc2 = 0.0f; }
                 real_T lc3 = w3 / (omega3 * R);
-                if (isnan(lc3) || isinf(abs(lc3))) { lc3 = 0; }
+                if (isnan(lc3) || isinf(abs(lc3))) { lc3 = 0.0f; }
                 real_T lc4 = w4 / (omega4 * R);
-                if (isnan(lc4) || isinf(abs(lc4))) { lc4 = 0; }
+                if (isnan(lc4) || isinf(abs(lc4))) { lc4 = 0.0f; }
 
-                real_T beta = calc_beta2(u, v) * 57.3;
-                real_T psi_h1 = (beta - 413) / 57.3;
-                real_T psi_h2 = (beta - 307) / 57.3;
-                real_T psi_h3 = (beta - 233) / 57.3;
-                real_T psi_h4 = (beta - 127) / 57.3;
+                real_T dCt_1 = 0.0f;
+                real_T dCt_2 = 0.0f;
+                real_T dCt_3 = 0.0f;
+                real_T dCt_4 = 0.0f;
+                                
+                real_T dCq_1 = 0.0f;
+                real_T dCq_2 = 0.0f;
+                real_T dCq_3 = 0.0f;
+                real_T dCq_4 = 0.0f;
 
-                psi_h1 = matlabFmod(psi_h1, 2 * M_PIf);
-                psi_h2 = matlabFmod(psi_h2, 2 * M_PIf);
-                psi_h3 = matlabFmod(psi_h3, 2 * M_PIf);
-                psi_h4 = matlabFmod(psi_h4, 2 * M_PIf);
+                if (!(u == 0 && v == 0))
+                {
+                    real_T beta = calc_beta2(u, v);
+                    real_T arm_angle = atan(l / b);
+                    real_T psi_h1 = (beta - (5.0f * M_PIf / 2.0f - arm_angle));
+                    real_T psi_h2 = (beta - (3.0f * M_PIf / 2.0f + arm_angle));
+                    real_T psi_h3 = (beta - (3.0f * M_PIf / 2.0f - arm_angle));
+                    real_T psi_h4 = (beta - (M_PIf / 2.0f + arm_angle));
 
-                // calculate dCt and dCq using model identified from the flight data
-                std::vector<real_T> k_model_2{ 0.00274750362242118, 0.0587325418628517, 0.0291979006795257, 0.155176381977433, -0.848919654295447, -2.85285652127970, -16.6872606424138, -25.3582092758054, -8.21139486023900, 0.000662666074942486, -0.0137515544490184, 0.0258468383560923, 0.129354278831284, 0.739022953068088, -0.751589665006720, 2.30225029828906, 3.19387485842342, -2.01400124775404, -0.0327090226346993, 0.00550048663001955, 0.704747484311295, 0.384042859177342, 0.409107040799852, -2.91693142809590, -5.72731924259749, -3.84424311448819, 0.957068915766478, 0.00798767042006989, -0.0658174319226979, -0.515362725845307, 0.154017181898898, 1.07229345471127, 5.60834749404815, 3.12341580631406, 13.2751387862931, 3.38340384818304, -0.00871325200163225, 0.0139319909808224, 0.135829051260073, 0.0724018634704221, 0.462231305873754, 1.07728548843851, -2.92439099099261, 2.07387265629944, -1.76236683822441, 0.00277901355913424, 5.93712461960435e-05, -0.0737682036851551, 0.408392701436168, 0.181780336855863, -0.0914796558508702, -5.33048488631146, -11.6294693255163, -4.72950404100762, -0.00594871416216384, -0.0162850806730608, 0.173368295316786, 0.186292675296392, 0.225644067201894, -0.688845939593434, -6.49432628543192, -7.80900137821226, 0.415239218701371, -0.00544216811616573, 0.00518487316578840, 0.0476580090813803, -0.200801241660794, -0.476117215479456, -0.407991135460875, -1.81735072025647, 1.50472930028764, 4.35662490484023, -0.00159368739623987, 0.000467723919419556, 0.0129022985413385, -0.142747208717601, -0.286423056758624, -0.233246678589007, 5.27930446169201, 6.06363387971617, 3.14128857337644, 0.00453268191002699, -0.00474962613583822, -0.180460224377998, -0.0116017180130748, 0.0192198318847662, 1.17708508701190, 0.0640467785184096, 3.10723451211166, 0.482465692101886 };
-                std::vector<real_T> k_model_11{ 0.00260329204354066, 0.00129328992586148, -0.0199809965492002, -0.0868022523710462, -0.0889469386700429, 0.128032771798353, 0.146886709138850, 0.524080931866815, 0.725843471299357, 0.00242937984350116, -0.00310550867822261, -0.0595768021706452, 0.0523222113704624, 0.0799385477524136, 0.0802433226135493, 0.387865290852874, 0.137337555435232, -0.310321282567866, 0.00158155254379188, 0.00319704874615568, -0.0554013498676434, -0.133883081875846, -0.154861909695999, 0.246917675390354, 0.0807388330437734, 1.21408540541708, 0.991981880292023, -9.00820660019962e-05, 0.000417739287775632, -0.00176625889617756, -0.0352354581017755, 0.00347023118130632, -0.0818779712415576, -0.0939352353976481, 0.367104057232038, -0.239846676494934, 0.000548702590051651, 0.000217200486637933, -0.00564899836836745, -0.000264397140190192, 0.00896129402789547, -0.0942019724552947, 0.0408551476683280, 0.607021266741172, 0.0144874105803823, 0.000847230370183477, -0.000948252583147180, -0.00265605533100469, 0.0598956109168678, 0.0807953120897514, -0.0545778293654141, -0.235368707057857, -0.948022031763549, -0.608815444932934, -0.000182959785330574, 0.00167139842657429, 0.00833552390363391, 0.0167067780351973, -0.00216159653990414, -0.0668352653475071, 0.0332682896037231, -0.220002714254035, -0.100740744918869, -0.000459348737065979, -0.00323901937377689, 0.0150989940672047, -0.00337931488830346, 0.0705271437626767, -0.0355357034004435, -0.0945407727921580, -0.114237238851565, -0.348109605269992, -0.000423056934179010, -1.57962640331396e-05, 0.00625198744041810, -0.0204741957877981, -0.00655890452523322, -0.0335286749006157, 0.0745650825531103, 0.0289036906676707, -0.0296758936977819, -0.000231091410645385, -0.000748657303930713, 0.00208598921233990, -0.0132023573075178, 0.0116429676033409, 0.0151697188209396, -0.0404565223580964, 0.178329482629743, 0.0297489549373982 };
-                
-                std::vector<real_T> Fn1 = Fn(psi_h1, h, 0, 1, mu1, lc1);
-                std::vector<real_T> Fn2 = Fn(2 * M_PIf - psi_h2, h, 0, 1, mu2, lc2);
-                std::vector<real_T> Fn3 = Fn(psi_h3, h, 0, 1, mu3, lc3);
-                std::vector<real_T> Fn4 = Fn(2 * M_PIf - psi_h4, h, 0, 1, mu4, lc4);
+                    psi_h1 = matlabFmod(psi_h1, 2.0f * M_PIf);
+                    psi_h2 = matlabFmod(psi_h2, 2.0f * M_PIf);
+                    psi_h3 = matlabFmod(psi_h3, 2.0f * M_PIf);
+                    psi_h4 = matlabFmod(psi_h4, 2.0f * M_PIf);
 
-                real_T dCt_1 = std::inner_product(Fn1.begin(), Fn1.end(), k_model_2.begin(), 0.0);
-                real_T dCt_2 = std::inner_product(Fn2.begin(), Fn2.end(), k_model_2.begin(), 0.0);
-                real_T dCt_3 = std::inner_product(Fn3.begin(), Fn3.end(), k_model_2.begin(), 0.0);
-                real_T dCt_4 = std::inner_product(Fn4.begin(), Fn4.end(), k_model_2.begin(), 0.0);
+                    //psi_h1 = std::floor(psi_h1 * 100000) / 100000;
+                    //psi_h2 = std::floor((2 * M_PIf - psi_h2) * 100000) / 100000;
+                    //psi_h3 = std::floor(psi_h3 * 100000) / 100000;
+                    //psi_h4 = std::floor((2 * M_PIf - psi_h4) * 100000) / 100000;
 
-                real_T dCq_1 = std::inner_product(Fn1.begin(), Fn1.end(), k_model_11.begin(), 0.0);
-                real_T dCq_2 = std::inner_product(Fn2.begin(), Fn2.end(), k_model_11.begin(), 0.0);
-                real_T dCq_3 = std::inner_product(Fn3.begin(), Fn3.end(), k_model_11.begin(), 0.0);
-                real_T dCq_4 = std::inner_product(Fn4.begin(), Fn4.end(), k_model_11.begin(), 0.0);
+                    psi_h2 = 2.0f * M_PIf - psi_h2;
+                    psi_h4 = 2.0f * M_PIf - psi_h4;
 
-                //dCt_1 = 0;
-                //dCt_2 = 0;
-                //dCt_3 = 0;
-                //dCt_4 = 0;
+                    // calculate dCt and dCq using model identified from the flight data
+                    std::vector<real_T> k_model_2{ 0.00274750362242118, 0.0587325418628517, 0.0291979006795257, 0.155176381977433, -0.848919654295447, -2.85285652127970, -16.6872606424138, -25.3582092758054, -8.21139486023900, 0.000662666074942486, -0.0137515544490184, 0.0258468383560923, 0.129354278831284, 0.739022953068088, -0.751589665006720, 2.30225029828906, 3.19387485842342, -2.01400124775404, -0.0327090226346993, 0.00550048663001955, 0.704747484311295, 0.384042859177342, 0.409107040799852, -2.91693142809590, -5.72731924259749, -3.84424311448819, 0.957068915766478, 0.00798767042006989, -0.0658174319226979, -0.515362725845307, 0.154017181898898, 1.07229345471127, 5.60834749404815, 3.12341580631406, 13.2751387862931, 3.38340384818304, -0.00871325200163225, 0.0139319909808224, 0.135829051260073, 0.0724018634704221, 0.462231305873754, 1.07728548843851, -2.92439099099261, 2.07387265629944, -1.76236683822441, 0.00277901355913424, 5.93712461960435e-05, -0.0737682036851551, 0.408392701436168, 0.181780336855863, -0.0914796558508702, -5.33048488631146, -11.6294693255163, -4.72950404100762, -0.00594871416216384, -0.0162850806730608, 0.173368295316786, 0.186292675296392, 0.225644067201894, -0.688845939593434, -6.49432628543192, -7.80900137821226, 0.415239218701371, -0.00544216811616573, 0.00518487316578840, 0.0476580090813803, -0.200801241660794, -0.476117215479456, -0.407991135460875, -1.81735072025647, 1.50472930028764, 4.35662490484023, -0.00159368739623987, 0.000467723919419556, 0.0129022985413385, -0.142747208717601, -0.286423056758624, -0.233246678589007, 5.27930446169201, 6.06363387971617, 3.14128857337644, 0.00453268191002699, -0.00474962613583822, -0.180460224377998, -0.0116017180130748, 0.0192198318847662, 1.17708508701190, 0.0640467785184096, 3.10723451211166, 0.482465692101886 };
+                    std::vector<real_T> k_model_11{ 0.00260329204354066, 0.00129328992586148, -0.0199809965492002, -0.0868022523710462, -0.0889469386700429, 0.128032771798353, 0.146886709138850, 0.524080931866815, 0.725843471299357, 0.00242937984350116, -0.00310550867822261, -0.0595768021706452, 0.0523222113704624, 0.0799385477524136, 0.0802433226135493, 0.387865290852874, 0.137337555435232, -0.310321282567866, 0.00158155254379188, 0.00319704874615568, -0.0554013498676434, -0.133883081875846, -0.154861909695999, 0.246917675390354, 0.0807388330437734, 1.21408540541708, 0.991981880292023, -9.00820660019962e-05, 0.000417739287775632, -0.00176625889617756, -0.0352354581017755, 0.00347023118130632, -0.0818779712415576, -0.0939352353976481, 0.367104057232038, -0.239846676494934, 0.000548702590051651, 0.000217200486637933, -0.00564899836836745, -0.000264397140190192, 0.00896129402789547, -0.0942019724552947, 0.0408551476683280, 0.607021266741172, 0.0144874105803823, 0.000847230370183477, -0.000948252583147180, -0.00265605533100469, 0.0598956109168678, 0.0807953120897514, -0.0545778293654141, -0.235368707057857, -0.948022031763549, -0.608815444932934, -0.000182959785330574, 0.00167139842657429, 0.00833552390363391, 0.0167067780351973, -0.00216159653990414, -0.0668352653475071, 0.0332682896037231, -0.220002714254035, -0.100740744918869, -0.000459348737065979, -0.00323901937377689, 0.0150989940672047, -0.00337931488830346, 0.0705271437626767, -0.0355357034004435, -0.0945407727921580, -0.114237238851565, -0.348109605269992, -0.000423056934179010, -1.57962640331396e-05, 0.00625198744041810, -0.0204741957877981, -0.00655890452523322, -0.0335286749006157, 0.0745650825531103, 0.0289036906676707, -0.0296758936977819, -0.000231091410645385, -0.000748657303930713, 0.00208598921233990, -0.0132023573075178, 0.0116429676033409, 0.0151697188209396, -0.0404565223580964, 0.178329482629743, 0.0297489549373982 };
 
-                //dCq_1 = 0;
-                //dCq_2 = 0;
-                //dCq_3 = 0;
-                //dCq_4 = 0;
+                    std::vector<real_T> Fn1 = Fn(psi_h1, h, 0.0f, 1.0f, mu1, lc1);
+                    std::vector<real_T> Fn2 = Fn(psi_h2, h, 0.0f, 1.0f, mu2, lc2);
+                    std::vector<real_T> Fn3 = Fn(psi_h3, h, 0.0f, 1.0f, mu3, lc3);
+                    std::vector<real_T> Fn4 = Fn(psi_h4, h, 0.0f, 1.0f, mu4, lc4);
 
-                // saturate dCtand dCq for extrapolation
+                    dCt_1 = std::inner_product(Fn1.begin(), Fn1.end(), k_model_2.begin(), 0.0);
+                    dCt_2 = std::inner_product(Fn2.begin(), Fn2.end(), k_model_2.begin(), 0.0);
+                    dCt_3 = std::inner_product(Fn3.begin(), Fn3.end(), k_model_2.begin(), 0.0);
+                    dCt_4 = std::inner_product(Fn4.begin(), Fn4.end(), k_model_2.begin(), 0.0);
+
+                    dCq_1 = std::inner_product(Fn1.begin(), Fn1.end(), k_model_11.begin(), 0.0);
+                    dCq_2 = std::inner_product(Fn2.begin(), Fn2.end(), k_model_11.begin(), 0.0);
+                    dCq_3 = std::inner_product(Fn3.begin(), Fn3.end(), k_model_11.begin(), 0.0);
+                    dCq_4 = std::inner_product(Fn4.begin(), Fn4.end(), k_model_11.begin(), 0.0);
+                }
+
+                // saturate dCt and dCq for extrapolation
                 if (dCt_1 > 0.007) { dCt_1 = 0.007; }
                 else if (dCt_1 < -0.007) { dCt_1 = -0.007; }
                 if (dCt_2 > 0.007) { dCt_2 = 0.007; }
@@ -806,7 +879,7 @@ namespace msr {
 
                 // interaction effect is negligible when V < 2m / s;
                 real_T vh = sqrt(u * u + v * v);
-                real_T one_exp = 1 / (1 + exp(-6 * (vh - 1)));
+                real_T one_exp = 1.0f / (1.0f + exp(-6.0f * (vh - 1.0f)));
                 dCt_1 = one_exp * dCt_1;
                 dCt_2 = one_exp * dCt_2;
                 dCt_3 = one_exp * dCt_3;
@@ -929,7 +1002,7 @@ namespace msr {
                     Vb_pqr_cross = VectorMath::transformToWorldFrame(Vb_pqr_cross, current.pose.orientation);
 
                     // Compute the next linear accelerations
-                    next.accelerations.linear = (next_wrench.force / body.getMass()) + body.getEnvironment().getState().gravity - Vb_pqr_cross;
+                    next.accelerations.linear = apply_process_noise((next_wrench.force / body.getMass()) + body.getEnvironment().getState().gravity - Vb_pqr_cross, mean_vxyz, cov_vxyz);
 
                 }
 
@@ -949,25 +1022,25 @@ namespace msr {
                     // The gyroscopic moment has to be computed
                     // First the propeller Moment of Inertia is established
                     Matrix3x3r Ip = Matrix3x3r::Zero();
-                    Ip(0, 0) = 4.2e-06; Ip(0, 1) = 0; Ip(0, 2) = 0;
-                    Ip(1, 0) = 0; Ip(1, 1) = 4.2e-06; Ip(1, 2) = 0;
-                    Ip(2, 0) = 0; Ip(2, 1) = 0; Ip(2, 2) = 8.0e-06;
+                    Ip(0, 0) = 4.2e-06; Ip(0, 1) = 0.0f; Ip(0, 2) = 0.0f;
+                    Ip(1, 0) = 0.0f; Ip(1, 1) = 4.2e-06; Ip(1, 2) = 0.0f;
+                    Ip(2, 0) = 0.0f; Ip(2, 1) = 0.0f; Ip(2, 2) = 8.0e-06;
 
                     // Then the gryoscopic part of the moment
-                    const Vector3r w1_vector = Vector3r(0, 0, omega1);
-                    const Vector3r w2_vector = Vector3r(0, 0, -omega2);
-                    const Vector3r w3_vector = Vector3r(0, 0, omega3);
-                    const Vector3r w4_vector = Vector3r(0, 0, -omega4);
+                    const Vector3r w1_vector = Vector3r(0.0f, 0.0f, omega1);
+                    const Vector3r w2_vector = Vector3r(0.0f, 0.0f, -omega2);
+                    const Vector3r w3_vector = Vector3r(0.0f, 0.0f, omega3);
+                    const Vector3r w4_vector = Vector3r(0.0f, 0.0f, -omega4);
                     const Vector3r M_gyro_second = avg_angular.cross(Ip * w1_vector + Ip * w2_vector + Ip * w3_vector + Ip * w4_vector);
 
                     real_T omega1_dot = (omega1 - omega1_last) / dt_real;
                     real_T omega2_dot = (omega2 - omega2_last) / dt_real;
                     real_T omega3_dot = (omega3 - omega3_last) / dt_real;
                     real_T omega4_dot = (omega4 - omega4_last) / dt_real;
-                    const Vector3r w1_dot_vector = Vector3r(0, 0, omega1_dot);
-                    const Vector3r w2_dot_vector = Vector3r(0, 0, -omega2_dot);
-                    const Vector3r w3_dot_vector = Vector3r(0, 0, omega3_dot);
-                    const Vector3r w4_dot_vector = Vector3r(0, 0, -omega4_dot);
+                    const Vector3r w1_dot_vector = Vector3r(0.0f, 0.0f, omega1_dot);
+                    const Vector3r w2_dot_vector = Vector3r(0.0f, 0.0f, -omega2_dot);
+                    const Vector3r w3_dot_vector = Vector3r(0.0f, 0.0f, omega3_dot);
+                    const Vector3r w4_dot_vector = Vector3r(0.0f, 0.0f, -omega4_dot);
                     const Vector3r M_gyro_first = Ip * w1_dot_vector + Ip * w2_dot_vector + Ip * w3_dot_vector + Ip * w4_dot_vector;
 
                     omega1_last = omega1;
@@ -979,12 +1052,38 @@ namespace msr {
                     const Vector3r M_gyro = signr * (M_gyro_first + M_gyro_second);
                     const Vector3r angular_momentum_rate = next_wrench.torque - M_gyro - avg_angular.cross(angular_momentum);
                     //new angular acceleration - we'll use this acceleration in next time step
-                    next.accelerations.angular = body.getInertiaInv() * angular_momentum_rate;
+                    next.accelerations.angular = apply_process_noise(body.getInertiaInv() * angular_momentum_rate, mean_pqr, cov_pqr);
 
                     /************************* Update pose and twist after dt ************************/
                     //Verlet integration: http://www.physics.udel.edu/~bnikolic/teaching/phys660/numerical_ode/node5.html
-                    next.twist.linear = current.twist.linear + (current.accelerations.linear + next.accelerations.linear) * (0.5f * dt_real);
-                    next.twist.angular = current.twist.angular + (current.accelerations.angular + next.accelerations.angular) * (0.5f * dt_real);
+                    // ode2 Heuns method
+                    if (integration_method_v == 0)  // Verlet algorithm
+                    {
+                        next.twist.linear = apply_process_noise(current.twist.linear + (current.accelerations.linear + next.accelerations.linear) * (0.5f * dt_real), mean_xyz, cov_xyz);
+                        next.twist.angular = apply_process_noise(current.twist.angular + (current.accelerations.angular + next.accelerations.angular) * (0.5f * dt_real), mean_att, cov_att);
+                    }
+                    else if (integration_method_v == 1)  // Verlet algorithm AirSim
+                    {
+                        next.twist.linear = apply_process_noise(current.twist.linear + next.accelerations.linear * dt_real + (current.accelerations.linear) * (0.5f * dt_real), mean_xyz, cov_xyz);
+                        next.twist.angular = apply_process_noise(current.twist.angular + next.accelerations.angular * dt_real + (current.accelerations.angular) * (0.5f * dt_real), mean_att, cov_att);
+                    }
+                    else if (integration_method_v == 2)  // Adams-Bashfort 2-step method
+                    {
+                        next.twist.linear = apply_process_noise(current.twist.linear + 3 / 2.0f * next.accelerations.linear * dt_real - current.accelerations.linear * (0.5f * dt_real), mean_xyz, cov_xyz);
+                        next.twist.angular = apply_process_noise(current.twist.angular + 3 / 2.0f * next.accelerations.angular * dt_real - current.accelerations.angular * (0.5f * dt_real), mean_att, cov_att);
+                    }
+                    else if (integration_method_v == 3)  // Beeman and Schofield
+                    {
+                        next.twist.linear = apply_process_noise(current.twist.linear + 1 / 6.0f * (2 * next.accelerations.linear + 5 * current.accelerations.linear - previous.accelerations.linear) * dt_real, mean_xyz, cov_xyz);
+                        next.twist.angular = apply_process_noise(current.twist.angular + 1 / 6.0f * (2 * next.accelerations.angular + 5 * current.accelerations.angular - previous.accelerations.angular) * dt_real, mean_att, cov_att);
+                    }
+
+                    real_T vx_print = abs(next.twist.linear.x());
+                    real_T vy_print = abs(next.twist.linear.y());
+                    real_T vz_print = abs(next.twist.linear.z());
+                    real_T p_print = abs(next.twist.angular.x());
+                    real_T q_print = abs(next.twist.angular.y());
+                    real_T r_print = abs(next.twist.angular.z());
 
                     //if controller has bug, velocities can increase idenfinitely 
                     //so we need to clip this or everything will turn in to infinity/nans
@@ -1002,9 +1101,9 @@ namespace msr {
                 }
                 real_T x_location = current.pose.position.x();
                 real_T z_location = current.pose.position.z();
-                computeNextPose(dt, current.pose, avg_linear, avg_angular, next);
+                computeNextPose(dt, current, next);
             }
-            static void getNextKinematicsNoCollision(TTimeDelta dt, PhysicsBody& body, const Kinematics::State& current,
+            void getNextKinematicsNoCollision(TTimeDelta dt, PhysicsBody& body, const Kinematics::State& current,
                 Kinematics::State& next, Wrench& next_wrench, const Vector3r& wind, float prop_damage[])
             {
                 const real_T dt_real = static_cast<real_T>(dt);
@@ -1087,41 +1186,96 @@ namespace msr {
                     }
                 }
 
-                computeNextPose(dt, current.pose, avg_linear, avg_angular, next);
+                computeNextPose(dt, current, next);
 
                 //Utils::log(Utils::stringf("N-VEL %s %f: ", VectorMath::toString(next.twist.linear).c_str(), dt));
                 //Utils::log(Utils::stringf("N-POS %s %f: ", VectorMath::toString(next.pose.position).c_str(), dt));
 
             }
 
-            static void computeNextPose(TTimeDelta dt, const Pose& current_pose, const Vector3r& avg_linear, const Vector3r& avg_angular, Kinematics::State& next)
+            void computeNextPose(TTimeDelta dt, const Kinematics::State& current, Kinematics::State& next)
             {
                 real_T dt_real = static_cast<real_T>(dt);
 
-                next.pose.position = current_pose.position + avg_linear * dt_real;
+                if (!use_quat)
+                {
+                    real_T p_var = current.twist.angular(0);
+                    real_T q_var = current.twist.angular(1);
+                    real_T r_var = current.twist.angular(2);
+                    real_T p_dot_var = current.accelerations.angular(0);
+                    real_T q_dot_var = current.accelerations.angular(1);
+                    real_T r_dot_var = current.accelerations.angular(2);
 
-                //use angular velocty in body frame to calculate angular displacement in last dt seconds
-                real_T angle_per_unit = avg_angular.norm();
-                if (Utils::isDefinitelyGreaterThan(angle_per_unit, 0.0f)) {
-                    //convert change in angle to unit quaternion
-                    AngleAxisr angle_dt_aa = AngleAxisr(angle_per_unit * dt_real, avg_angular / angle_per_unit);
-                    Quaternionr angle_dt_q = Quaternionr(angle_dt_aa);
-                    /*
-                    Add change in angle to previous orientation.
-                    Proof that this is q0 * q1:
-                    If rotated vector is qx*v*qx' then qx is attitude
-                    Initially we have q0*v*q0'
-                    Lets transform this to body coordinates to get
-                    q0'*(q0*v*q0')*q0
-                    Then apply q1 rotation on it to get
-                    q1(q0'*(q0*v*q0')*q0)q1'
-                    Then transform back to world coordinate
-                    q0(q1(q0'*(q0*v*q0')*q0)q1')q0'
-                    which simplifies to
-                    q0(q1(v)q1')q0'
-                    Thus new attitude is q0q1
-                    */
-                    next.pose.orientation = current_pose.orientation * angle_dt_q;
+                    real_T theta, phi, psi;
+                    VectorMath::toEulerianAngle(current.pose.orientation, theta, phi, psi);
+
+                    // Corrected current angular velocity
+                    real_T phi_update_v = p_var + tan(theta) * (q_var * sin(phi) + r_var * cos(phi));
+                    real_T theta_update_v = q_var * cos(phi) - r_var * sin(phi);
+                    real_T psi_update_v = (q_var * sin(phi) + r_var * cos(phi)) / cos(theta);
+
+                    // Corrected current angular acceleration
+                    real_T phi_update_a = p_dot_var + tan(theta) * (q_dot_var * sin(phi) + r_dot_var * cos(phi));
+                    real_T theta_update_a = q_dot_var * cos(phi) - r_dot_var * sin(phi);
+                    real_T psi_update_a = (q_dot_var * sin(phi) + r_dot_var * cos(phi)) / cos(theta);
+
+                    real_T phi_update;
+                    real_T theta_update;
+                    real_T psi_update;
+
+                    if (integration_method_x == 0)   // Verlet algorithm
+                    {
+                        next.pose.position = current.pose.position + current.twist.linear * dt_real + 1 / 2.0f * current.accelerations.linear * dt_real * dt_real;
+                        phi_update = phi + phi_update_v * dt_real + 1 / 2.0f * phi_update_a * dt_real * dt_real;
+                        theta_update = theta + theta_update_v * dt_real + 1 / 2.0f * theta_update_a * dt_real * dt_real;
+                        psi_update = psi + psi_update_v * dt_real + 1 / 2.0f * psi_update_a * dt_real * dt_real;
+                    }
+                    else if (integration_method_x == 1)  // Verlet algorithm AirSim
+                    {
+                        next.pose.position = current.pose.position + current.twist.linear * dt_real;
+                        phi_update = phi + phi_update_v * dt_real;
+                        theta_update = theta + theta_update_v * dt_real;
+                        psi_update = psi + psi_update_v * dt_real;
+                    }
+                    else if (integration_method_x == 2)  // Adams-Bashfort 2-step method
+                    {
+                        next.pose.position = current.pose.position + 3 / 2.0f * next.twist.linear * dt_real - 1 / 2.0f * current.twist.linear * dt_real;
+
+                        real_T p_var_next = next.twist.angular(0);
+                        real_T q_var_next = next.twist.angular(1);
+                        real_T r_var_next = next.twist.angular(2);
+
+                        // Corrected next angular velocity (incorrect since it uses the current angle)
+                        real_T phi_update_v_next = p_var_next + tan(theta) * (q_var_next * sin(phi) + r_var_next * cos(phi));
+                        real_T theta_update_v_next = q_var_next * cos(phi) - r_var_next * sin(phi);
+                        real_T psi_update_v_next = (q_var_next * sin(phi) + r_var_next * cos(phi)) / cos(theta);
+
+                        phi_update = phi + 3 / 2.0f * phi_update_v_next * dt_real - 1 / 2.0f * phi_update_v * dt_real;
+                        theta_update = theta + 3 / 2.0f * theta_update_v_next * dt_real - 1 / 2.0f * theta_update_v * dt_real;
+                        psi_update = psi + 3 / 2.0f * psi_update_v_next * dt_real - 1 / 2.0f * psi_update_v * dt_real;
+                    }
+                    else if (integration_method_x == 3)  // Beeman and Schofield
+                    {
+                        next.pose.position = current.pose.position + current.twist.linear * dt_real + 1 / 6.0f * (4. * current.accelerations.linear - previous.accelerations.linear) * dt_real * dt_real;
+
+                        real_T p_var_a_previous = previous.accelerations.angular(0);
+                        real_T q_var_a_previous = previous.accelerations.angular(1);
+                        real_T r_var_a_previous = previous.accelerations.angular(2);
+
+                        real_T theta_previous, phi_previous, psi_previous;
+                        VectorMath::toEulerianAngle(previous.pose.orientation, theta_previous, phi_previous, psi_previous);
+
+                        // Corrected previous angular velocity
+                        real_T phi_update_a_previous = p_var_a_previous + tan(theta_previous) * (q_var_a_previous * sin(phi_previous) + r_var_a_previous * cos(phi_previous));
+                        real_T theta_update_a_previous = q_var_a_previous * cos(phi_previous) - r_var_a_previous * sin(phi_previous);
+                        real_T psi_update_a_previous = (q_var_a_previous * sin(phi_previous) + r_var_a_previous * cos(phi_previous)) / cos(theta_previous);
+
+                        phi_update = phi + phi_update_v * dt_real + 1 / 6.0f * (4. * phi_update_a - phi_update_a_previous) * dt_real * dt_real;
+                        theta_update = theta + theta_update_v * dt_real + 1 / 6.0f * (4. * theta_update_a - theta_update_a_previous) * dt_real * dt_real;
+                        psi_update = psi + psi_update_v * dt_real + 1 / 6.0f * (4. * psi_update_a - psi_update_a_previous) * dt_real * dt_real;
+                    }
+
+                    next.pose.orientation = VectorMath::toQuaternion(theta_update, phi_update, psi_update);
                     if (VectorMath::hasNan(next.pose.orientation)) {
                         //Utils::DebugBreak();
                         Utils::log("orientation had NaN!", Utils::kLogLevelError);
@@ -1130,8 +1284,109 @@ namespace msr {
                     //re-normalize quaternion to avoid accumulating error
                     next.pose.orientation.normalize();
                 }
-                else //no change in angle, because angular velocity is zero (normalized vector is undefined)
-                    next.pose.orientation = current_pose.orientation;
+                else
+                {
+                    //use angular velocty in body frame to calculate angular displacement in last dt seconds
+                    real_T angle_per_unit = current.twist.angular.norm();
+                    next.pose.orientation = current.pose.orientation;
+                    if (integration_method_x == 0)   // Verlet algorithm
+                    {
+                        next.pose.position = current.pose.position + current.twist.linear * dt_real + 1 / 2.0f * current.accelerations.linear * dt_real * dt_real;
+                        if (Utils::isDefinitelyGreaterThan(angle_per_unit, 0.0f))
+                        {
+                            //convert change in angle to unit quaternion
+                            AngleAxisr angle_dt_aa_1 = AngleAxisr(angle_per_unit * dt_real, current.twist.angular / angle_per_unit);
+                            Quaternionr angle_dt_q_1 = Quaternionr(angle_dt_aa_1);
+                            next.pose.orientation *= angle_dt_q_1;
+                        }
+
+                        real_T angle_per_unit_current_acc = current.accelerations.angular.norm();
+                        if (Utils::isDefinitelyGreaterThan(angle_per_unit_current_acc, 0.0f))
+                        {
+                            AngleAxisr angle_dt_aa_2 = AngleAxisr(0.5f * angle_per_unit_current_acc * dt_real * dt_real, current.accelerations.angular / angle_per_unit_current_acc);
+                            Quaternionr angle_dt_q_2 = Quaternionr(angle_dt_aa_2);
+                            next.pose.orientation *= angle_dt_q_2;
+                        }                            
+                    }
+                    else if (integration_method_x == 1)  // Verlet algorithm AirSim
+                    {
+                        next.pose.position = current.pose.position + current.twist.linear * dt_real;
+                        if (Utils::isDefinitelyGreaterThan(angle_per_unit, 0.0f))
+                        {
+                            //convert change in angle to unit quaternion
+                            AngleAxisr angle_dt_aa = AngleAxisr(angle_per_unit * dt_real, current.twist.angular / angle_per_unit);
+                            Quaternionr angle_dt_q = Quaternionr(angle_dt_aa);
+                            /*
+                            Add change in angle to previous orientation.
+                            Proof that this is q0 * q1:
+                            If rotated vector is qx*v*qx' then qx is attitude
+                            Initially we have q0*v*q0'
+                            Lets transform this to body coordinates to get
+                            q0'*(q0*v*q0')*q0
+                            Then apply q1 rotation on it to get
+                            q1(q0'*(q0*v*q0')*q0)q1'
+                            Then transform back to world coordinate
+                            q0(q1(q0'*(q0*v*q0')*q0)q1')q0'
+                            which simplifies to
+                            q0(q1(v)q1')q0'
+                            Thus new attitude is q0q1
+                            */
+                            next.pose.orientation *= angle_dt_q;
+                        }
+                    }
+                    else  if (integration_method_x == 2)  // Adams-Bashfort 2-step method
+                    {
+                        next.pose.position = current.pose.position + 3 / 2.0f * next.twist.linear * dt_real - 1 / 2.0f * current.twist.linear * dt_real;
+                        if (Utils::isDefinitelyGreaterThan(angle_per_unit, 0.0f))
+                        {
+                            //convert change in angle to unit quaternion
+                            AngleAxisr angle_dt_aa_1 = AngleAxisr(-1 / 2.0f * angle_per_unit * dt_real, current.twist.angular / angle_per_unit);
+                            Quaternionr angle_dt_q_1 = Quaternionr(angle_dt_aa_1);
+                            next.pose.orientation *= angle_dt_q_1;
+                        }
+
+                        real_T angle_per_unit_next_v = next.twist.angular.norm();
+                        if (Utils::isDefinitelyGreaterThan(angle_per_unit_next_v, 0.0f))
+                        {
+                            AngleAxisr angle_dt_aa_2 = AngleAxisr(3 / 2.0f * angle_per_unit_next_v * dt_real, next.twist.angular / angle_per_unit_next_v);
+                            Quaternionr angle_dt_q_2 = Quaternionr(angle_dt_aa_2);
+                            next.pose.orientation *= angle_dt_q_2;
+                        }
+                    }
+                    else  if (integration_method_x == 3)  // Beeman and Schofield
+                    {
+                        next.pose.position = current.pose.position + current.twist.linear * dt_real + 1 / 6.0f * (4. * current.accelerations.linear - previous.accelerations.linear) * dt_real * dt_real;
+                        if (Utils::isDefinitelyGreaterThan(angle_per_unit, 0.0f))
+                        {
+                            //convert change in angle to unit quaternion
+                            AngleAxisr angle_dt_aa_1 = AngleAxisr(angle_per_unit * dt_real, current.twist.angular / angle_per_unit);
+                            Quaternionr angle_dt_q_1 = Quaternionr(angle_dt_aa_1);
+                            next.pose.orientation *= angle_dt_q_1;
+                        }
+
+                        real_T angle_per_unit_current_acc = current.accelerations.angular.norm();
+                        if (Utils::isDefinitelyGreaterThan(angle_per_unit_current_acc, 0.0f))
+                        {
+                            AngleAxisr angle_dt_aa_2 = AngleAxisr(4 / 6.0f * angle_per_unit_current_acc * dt_real * dt_real, current.accelerations.angular / angle_per_unit_current_acc);
+                            Quaternionr angle_dt_q_2 = Quaternionr(angle_dt_aa_2);
+                            next.pose.orientation *= angle_dt_q_2;
+                        }
+
+                        real_T angle_per_unit_previous_acc = previous.accelerations.angular.norm();
+                        if (Utils::isDefinitelyGreaterThan(angle_per_unit_previous_acc, 0.0f))
+                        {
+                            AngleAxisr angle_dt_aa_3 = AngleAxisr(-1 / 6.0f * angle_per_unit_previous_acc * dt_real * dt_real, previous.accelerations.angular / angle_per_unit_previous_acc);
+                            Quaternionr angle_dt_q_3 = Quaternionr(angle_dt_aa_3);
+                            next.pose.orientation *= angle_dt_q_3;
+                        }
+                    }
+                    if (VectorMath::hasNan(next.pose.orientation)) {
+                        //Utils::DebugBreak();
+                        Utils::log("orientation had NaN!", Utils::kLogLevelError);
+                    }
+                    //re-normalize quaternion to avoid accumulating error
+                    next.pose.orientation.normalize();
+                }                 
             }
 
         private:
@@ -1146,25 +1401,50 @@ namespace msr {
             Vector3r wind_;
             float propeller_damage_coefficients[4] = { 1.0, 1.0, 1.0, 1.0 };
 
+            // Variables for the different explicit integration methods
+            bool use_average_values = false;
+            bool use_quat = false;
+            int integration_method_v = 1; // 0 (Verlet), 1 (AirSim), 2 (Adams-Bashfort), 3 (Beeman and Schofield)
+            int integration_method_x = 1; // 0 (Verlet), 1 (AirSim), 2 (Adams-Bashfort), 3 (Beeman and Schofield)
+            Kinematics::State previous;
+            TTimeDelta initial_time = -1;
+
+
             // Parameter for the Bebop2
             static constexpr int max_w = 1200; // maximum number of radians per second of the propeller
             static constexpr int max_w_squared = max_w * max_w; // maximum number of radians per second of the propeller squared
             static constexpr real_T R = 0.075; // radius described by the propeller
             static constexpr real_T l = 0.0875; // distance of propeller to the y-axis of the drone
             static constexpr real_T b = 0.1150; // distance of propeller to x-axis
-            static constexpr int signr = 1;
+            static constexpr int signr = -1;
             static constexpr real_T rho = 1.225;  // density at the altitude in which the drone flies
             static constexpr int h = 5;   // variable used in the computation of dCt and dCq
 
-            real_T omega1_last = 0;
-            real_T omega2_last = 0;
-            real_T omega3_last = 0;
-            real_T omega4_last = 0;
+            static constexpr real_T rad2deg_factor = 180.0f / M_PIf;   // variable that is used to convert an angle from radians to degrees
 
-            //FirstOrderFilter<real_T> control_signal_filter_w1;
+            real_T omega1_last = 0.0f;
+            real_T omega2_last = 0.0f;
+            real_T omega3_last = 0.0f;
+            real_T omega4_last = 0.0f;
+
+            FirstOrderFilter<real_T> control_signal_filter_w1;
             //FirstOrderFilter<real_T> control_signal_filter_w2;
             //FirstOrderFilter<real_T> control_signal_filter_w3;
             //FirstOrderFilter<real_T> control_signal_filter_w4;
+
+
+            // Variables related to process noise
+            std::default_random_engine generator;
+            bool activate_process_noise = false;
+            Vector3r cov_pqr = Vector3r(0.0001, 0.0001, 0.0001);
+            Vector3r cov_att = Vector3r(10e-10, 10e-10, 10e-10);
+            Vector3r cov_xyz = Vector3r(10e-10, 10e-10, 10e-10);
+            Vector3r cov_vxyz = Vector3r(0.0001, 0.0001, 0.0001);
+
+            Vector3r mean_pqr = Vector3r(0.0f, 0.0f, 0.0f);
+            Vector3r mean_att = Vector3r(0.0f, 0.0f, 0.0f);
+            Vector3r mean_xyz = Vector3r(0.0f, 0.0f, 0.0f);
+            Vector3r mean_vxyz = Vector3r(0.0f, 0.0f, 0.0f);
         };
 
     }

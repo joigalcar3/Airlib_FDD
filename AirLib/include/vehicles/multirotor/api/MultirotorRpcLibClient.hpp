@@ -24,6 +24,76 @@ public:
     MultirotorRpcLibClient* goHomeAsync(float timeout_sec = Utils::max<float>(), const std::string& vehicle_name = "");
     bool dummyprinter(float numerito, const std::string& vehicle_name = "");
 
+    // Methods related to the reference position data gathering
+    void setPosRefActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanPosRefStoredData(const std::string& vehicle_name = "");
+    PosRefStoredData getPosRefStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the position error data gathering
+    void setPosErrorActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanPosErrorStoredData(const std::string& vehicle_name = "");
+    PosErrorStoredData getPosErrorStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the position error derivative data gathering
+    void setPosErrorDotActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanPosErrorDotStoredData(const std::string& vehicle_name = "");
+    PosErrorDotStoredData getPosErrorDotStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the reference velocity data gathering
+    void setVelRefActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanVelRefStoredData(const std::string& vehicle_name = "");
+    VelRefStoredData getVelRefStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the velocity data gathering
+    void setVelActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanVelStoredData(const std::string& vehicle_name = "");
+    VelStoredData getVelStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the reference acceleration data gathering
+    void setAccRefActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanAccRefStoredData(const std::string& vehicle_name = "");
+    AccRefStoredData getAccRefStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the reference rotational rates data gathering
+    void setPqrRefActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanPqrRefStoredData(const std::string& vehicle_name = "");
+    PqrRefStoredData getPqrRefStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the rotational rates data gathering
+    void setPqrActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanPqrStoredData(const std::string& vehicle_name = "");
+    PqrStoredData getPqrStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the reference thrust data gathering
+    void setThrustRefActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanThrustRefStoredData(const std::string& vehicle_name = "");
+    ThrustRefStoredData getThrustRefStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the omegas (motor rotations) data gathering
+    void setOmegasActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanOmegasStoredData(const std::string& vehicle_name = "");
+    OmegasStoredData getOmegasStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the reference yaw data gathering
+    void setYawRefActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanYawRefStoredData(const std::string& vehicle_name = "");
+    YawRefStoredData getYawRefStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the reference orientation data gathering
+    void setOrientationActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanOrientationStoredData(const std::string& vehicle_name = "");
+    OrientationStoredData getOrientationStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the position integrator data gathering
+    void setPositionIntegratorActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanPositionIntegratorStoredData(const std::string& vehicle_name = "");
+    PositionIntegratorStoredData getPositionIntegratorStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the thrust PI controller data gathering
+    void setThrustPiActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanThrustPiStoredData(const std::string& vehicle_name = "");
+    ThrustPiStoredData getThrustPiStoredDataVec(const std::string& vehicle_name = "");
+
     // Methods related to the Camera data gathering
     void setCameraActivation(bool activation, float sample_rate, vector<ImageCaptureBase::ImageRequest> request, const std::string& vehicle_name = "");
     void cleanCameraStoredData(const std::string& vehicle_name = "");
@@ -58,6 +128,9 @@ public:
     void setGPSActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
     void cleanGPSStoredData(const std::string& vehicle_name = "");
     GPSStoredData getGPSStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to drone teleportation
+    void setTeleportYawRef(float yaw_angle_ref, const std::string& vehicle_name = "");
 
     // Methods related to drone failures
     void setDamageCoefficients(float new_coeff_1, float new_coeff_2, float new_coeff_3, float new_coeff_4, const std::string& vehicle_name = "");

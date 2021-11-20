@@ -179,6 +179,338 @@ public:
         }
     };
 
+    struct PosRefStoredData {
+        std::vector<float> pos_ref_x;
+        std::vector<float> pos_ref_y;
+        std::vector<float> pos_ref_z;
+
+        MSGPACK_DEFINE_MAP(pos_ref_x, pos_ref_y, pos_ref_z);
+
+        PosRefStoredData()
+        {}
+
+        PosRefStoredData(msr::airlib::PosRefStoredData original)
+        {
+            pos_ref_x = original.pos_ref_x;
+            pos_ref_y = original.pos_ref_y;
+            pos_ref_z = original.pos_ref_z;
+        }
+
+        msr::airlib::PosRefStoredData to() const
+        {
+            msr::airlib::PosRefStoredData d(pos_ref_x, pos_ref_y, pos_ref_z);
+            return d;
+        }
+    };
+
+    struct PosErrorStoredData {
+        std::vector<float> pos_error_x;
+        std::vector<float> pos_error_y;
+        std::vector<float> pos_error_z;
+
+        MSGPACK_DEFINE_MAP(pos_error_x, pos_error_y, pos_error_z);
+
+        PosErrorStoredData()
+        {}
+
+        PosErrorStoredData(msr::airlib::PosErrorStoredData original)
+        {
+            pos_error_x = original.pos_error_x;
+            pos_error_y = original.pos_error_y;
+            pos_error_z = original.pos_error_z;
+        }
+
+        msr::airlib::PosErrorStoredData to() const
+        {
+            msr::airlib::PosErrorStoredData d(pos_error_x, pos_error_y, pos_error_z);
+            return d;
+        }
+    };
+
+    struct PosErrorDotStoredData {
+        std::vector<float> pos_error_dot_x;
+        std::vector<float> pos_error_dot_y;
+        std::vector<float> pos_error_dot_z;
+
+        MSGPACK_DEFINE_MAP(pos_error_dot_x, pos_error_dot_y, pos_error_dot_z);
+
+        PosErrorDotStoredData()
+        {}
+
+        PosErrorDotStoredData(msr::airlib::PosErrorDotStoredData original)
+        {
+            pos_error_dot_x = original.pos_error_dot_x;
+            pos_error_dot_y = original.pos_error_dot_y;
+            pos_error_dot_z = original.pos_error_dot_z;
+        }
+
+        msr::airlib::PosErrorDotStoredData to() const
+        {
+            msr::airlib::PosErrorDotStoredData d(pos_error_dot_x, pos_error_dot_y, pos_error_dot_z);
+            return d;
+        }
+    };
+
+    struct VelRefStoredData {
+        std::vector<float> vel_ref_x;
+        std::vector<float> vel_ref_y;
+        std::vector<float> vel_ref_z;
+
+        MSGPACK_DEFINE_MAP(vel_ref_x, vel_ref_y, vel_ref_z);
+
+        VelRefStoredData()
+        {}
+
+        VelRefStoredData(msr::airlib::VelRefStoredData original)
+        {
+            vel_ref_x = original.vel_ref_x;
+            vel_ref_y = original.vel_ref_y;
+            vel_ref_z = original.vel_ref_z;
+        }
+
+        msr::airlib::VelRefStoredData to() const
+        {
+            msr::airlib::VelRefStoredData d(vel_ref_x, vel_ref_y, vel_ref_z);
+            return d;
+        }
+    };
+
+    struct VelStoredData {
+        std::vector<float> vel_x;
+        std::vector<float> vel_y;
+        std::vector<float> vel_z;
+
+        MSGPACK_DEFINE_MAP(vel_x, vel_y, vel_z);
+
+        VelStoredData()
+        {}
+
+        VelStoredData(msr::airlib::VelStoredData original)
+        {
+            vel_x = original.vel_x;
+            vel_y = original.vel_y;
+            vel_z = original.vel_z;
+        }
+
+        msr::airlib::VelStoredData to() const
+        {
+            msr::airlib::VelStoredData d(vel_x, vel_y, vel_z);
+            return d;
+        }
+    };
+
+    struct AccRefStoredData {
+        std::vector<float> acc_ref_x;
+        std::vector<float> acc_ref_y;
+        std::vector<float> acc_ref_z;
+
+        MSGPACK_DEFINE_MAP(acc_ref_x, acc_ref_y, acc_ref_z);
+
+        AccRefStoredData()
+        {}
+
+        AccRefStoredData(msr::airlib::AccRefStoredData original)
+        {
+            acc_ref_x = original.acc_ref_x;
+            acc_ref_y = original.acc_ref_y;
+            acc_ref_z = original.acc_ref_z;
+        }
+
+        msr::airlib::AccRefStoredData to() const
+        {
+            msr::airlib::AccRefStoredData d(acc_ref_x, acc_ref_y, acc_ref_z);
+            return d;
+        }
+    };
+
+    struct PqrRefStoredData {
+        std::vector<float> pqr_ref_x;
+        std::vector<float> pqr_ref_y;
+        std::vector<float> pqr_ref_z;
+
+        MSGPACK_DEFINE_MAP(pqr_ref_x, pqr_ref_y, pqr_ref_z);
+
+        PqrRefStoredData()
+        {}
+
+        PqrRefStoredData(msr::airlib::PqrRefStoredData original)
+        {
+            pqr_ref_x = original.pqr_ref_x;
+            pqr_ref_y = original.pqr_ref_y;
+            pqr_ref_z = original.pqr_ref_z;
+        }
+
+        msr::airlib::PqrRefStoredData to() const
+        {
+            msr::airlib::PqrRefStoredData d(pqr_ref_x, pqr_ref_y, pqr_ref_z);
+            return d;
+        }
+    };
+
+    struct PqrStoredData {
+        std::vector<float> pqr_x;
+        std::vector<float> pqr_y;
+        std::vector<float> pqr_z;
+
+        MSGPACK_DEFINE_MAP(pqr_x, pqr_y, pqr_z);
+
+        PqrStoredData()
+        {}
+
+        PqrStoredData(msr::airlib::PqrStoredData original)
+        {
+            pqr_x = original.pqr_x;
+            pqr_y = original.pqr_y;
+            pqr_z = original.pqr_z;
+        }
+
+        msr::airlib::PqrStoredData to() const
+        {
+            msr::airlib::PqrStoredData d(pqr_x, pqr_y, pqr_z);
+            return d;
+        }
+    };
+
+    struct ThrustRefStoredData {
+        std::vector<float> current_thrust_ref_fb;
+        std::vector<float> current_thrust_ref_ff;
+
+        MSGPACK_DEFINE_MAP(current_thrust_ref_fb, current_thrust_ref_ff);
+
+        ThrustRefStoredData()
+        {}
+
+        ThrustRefStoredData(msr::airlib::ThrustRefStoredData original)
+        {
+            current_thrust_ref_fb = original.current_thrust_ref_fb;
+            current_thrust_ref_ff = original.current_thrust_ref_ff;
+        }
+
+        msr::airlib::ThrustRefStoredData to() const
+        {
+            msr::airlib::ThrustRefStoredData d(current_thrust_ref_fb, current_thrust_ref_ff);
+            return d;
+        }
+    };
+
+    struct OmegasStoredData {
+        std::vector<float> front_left;
+        std::vector<float> front_right;
+        std::vector<float> back_right;
+        std::vector<float> back_left;
+
+        MSGPACK_DEFINE_MAP(front_left, front_right, back_right, back_left);
+
+        OmegasStoredData()
+        {}
+
+        OmegasStoredData(msr::airlib::OmegasStoredData original)
+        {
+            front_left = original.front_left;
+            front_right = original.front_right;
+            back_right = original.back_right;
+            back_left = original.back_left;
+        }
+
+        msr::airlib::OmegasStoredData to() const
+        {
+            msr::airlib::OmegasStoredData d(front_left, front_right, back_right, back_left);
+            return d;
+        }
+    };
+
+    struct YawRefStoredData {
+        std::vector<float> yaw_ref;
+        std::vector<float> yaw_ref_corrected;
+
+        MSGPACK_DEFINE_MAP(yaw_ref, yaw_ref_corrected);
+
+        YawRefStoredData()
+        {}
+
+        YawRefStoredData(msr::airlib::YawRefStoredData original)
+        {
+            yaw_ref = original.yaw_ref;
+            yaw_ref_corrected = original.yaw_ref_corrected;
+        }
+
+        msr::airlib::YawRefStoredData to() const
+        {
+            msr::airlib::YawRefStoredData d(yaw_ref, yaw_ref_corrected);
+            return d;
+        }
+    };
+
+    struct OrientationStoredData {
+        std::vector<float> orientation_x;
+        std::vector<float> orientation_y;
+        std::vector<float> orientation_z;
+
+        MSGPACK_DEFINE_MAP(orientation_x, orientation_y, orientation_z);
+
+        OrientationStoredData()
+        {}
+
+        OrientationStoredData(msr::airlib::OrientationStoredData original)
+        {
+            orientation_x = original.orientation_x;
+            orientation_y = original.orientation_y;
+            orientation_z = original.orientation_z;
+        }
+
+        msr::airlib::OrientationStoredData to() const
+        {
+            msr::airlib::OrientationStoredData d(orientation_x, orientation_y, orientation_z);
+            return d;
+        }
+    };
+
+    struct PositionIntegratorStoredData {
+        std::vector<float> position_integrator_x;
+        std::vector<float> position_integrator_y;
+        std::vector<float> position_integrator_z;
+
+        MSGPACK_DEFINE_MAP(position_integrator_x, position_integrator_y, position_integrator_z);
+
+        PositionIntegratorStoredData()
+        {}
+
+        PositionIntegratorStoredData(msr::airlib::PositionIntegratorStoredData original)
+        {
+            position_integrator_x = original.position_integrator_x;
+            position_integrator_y = original.position_integrator_y;
+            position_integrator_z = original.position_integrator_z;
+        }
+
+        msr::airlib::PositionIntegratorStoredData to() const
+        {
+            msr::airlib::PositionIntegratorStoredData d(position_integrator_x, position_integrator_y, position_integrator_z);
+            return d;
+        }
+    };
+
+    struct ThrustPiStoredData {
+        std::vector<float> thrust_P;
+        std::vector<float> thrust_I;
+
+        MSGPACK_DEFINE_MAP(thrust_P, thrust_I);
+
+        ThrustPiStoredData()
+        {}
+
+        ThrustPiStoredData(msr::airlib::ThrustPiStoredData original)
+        {
+            thrust_P = original.thrust_P;
+            thrust_I = original.thrust_I;
+        }
+
+        msr::airlib::ThrustPiStoredData to() const
+        {
+            msr::airlib::ThrustPiStoredData d(thrust_P, thrust_I);
+            return d;
+        }
+    };
+
     struct IMUStoredData {
         std::vector<uint64_t> timestamps;
         std::vector<float> orientations_w;

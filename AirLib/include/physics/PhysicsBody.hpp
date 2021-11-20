@@ -71,6 +71,11 @@ public: //interface
         throw std::runtime_error("getPWMrotors API is not supported for this vehicle");
     }
 
+    virtual std::vector<real_T> getPWMrotors_INDI(Kinematics::State previous)
+    {
+        throw std::runtime_error("getPWMrotors_INDI API is not supported for this vehicle");
+    }
+
     virtual void collectCameraData()
     {}
 
@@ -89,8 +94,12 @@ public: //methods
     {
         mass_ = mass;
         mass_inv_ = 1.0f / mass;
+        mass_original = mass_;
+        mass_original_inv = mass_inv_;
         inertia_ = inertia;
         inertia_inv_ = inertia_.inverse();
+        inertia_original = inertia_;
+        inertia_original_inv = inertia_inv_;
         environment_ = environment;
         kinematics_ = kinematics;
     }
@@ -161,6 +170,20 @@ public: //methods
     const Matrix3x3r& getInertiaInv()  const
     {
         return inertia_inv_;
+    }
+
+    void choose_inertia(real_T damaged_propellers, real_T b, real_T l)
+    {
+        real_T first_coeff = inertia_original(0, 0) - b * b * 0.005 * damaged_propellers;
+        if (first_coeff != inertia_(0, 0))
+        {
+            inertia_(0, 0) = first_coeff;
+            inertia_(1, 1) = inertia_original(1, 1) - l * l * 0.005 * damaged_propellers;
+            inertia_(2, 2) = inertia_original(2, 2) - (b * b + l * l) * 0.005 * damaged_propellers;
+            inertia_inv_ = inertia_.inverse();
+            mass_ = mass_original - 0.005 * damaged_propellers;
+            mass_inv_ = 1.0 / mass_;
+        }
     }
 
     const Pose& getPose() const
@@ -249,8 +272,8 @@ public:
     std::mutex mutexito;
 
 private:
-    real_T mass_, mass_inv_;
-    Matrix3x3r inertia_, inertia_inv_;
+    real_T mass_, mass_inv_, mass_original, mass_original_inv;
+    Matrix3x3r inertia_, inertia_inv_, damaged_inertia, damaged_inertia_inv, inertia_original, inertia_original_inv;
 
     Kinematics* kinematics_ = nullptr;
     Environment* environment_ = nullptr;

@@ -279,6 +279,10 @@ protected: //static utility functions for derived classes to use
         params.inertia(0, 0) = 0.00144760672497284 + 0.1150 * 0.1150 * 0.005 * 4; params.inertia(0, 1) = 0;                                                 params.inertia(0, 2) = 2.30441852439024e-05;
         params.inertia(1, 0) = 0;                                                 params.inertia(1, 1) = 0.00125537458774899 + 0.0875 * 0.0875 * 0.005 * 4; params.inertia(1, 2) = 0;
         params.inertia(2, 0) = 2.30441852439024e-05;                              params.inertia(2, 1) = 0;                                                 params.inertia(2, 2) = 0.00252027843675714 + (0.1150 * 0.1150 + 0.0875 * 0.0875) * 0.005 * 4;
+
+        //params.inertia(0, 0) = 0.00144760672497284;   params.inertia(0, 1) = 0;                   params.inertia(0, 2) = 2.30441852439024e-05;
+        //params.inertia(1, 0) = 0;                     params.inertia(1, 1) = 0.00125537458774899; params.inertia(1, 2) = 0;
+        //params.inertia(2, 0) = 2.30441852439024e-05;  params.inertia(2, 1) = 0;                   params.inertia(2, 2) = 0.00252027843675714;
     }
 
     void setupFrameGenericQuad(Params& params)

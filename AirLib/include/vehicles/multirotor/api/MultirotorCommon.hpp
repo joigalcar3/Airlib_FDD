@@ -161,6 +161,226 @@ struct LockedPropellers
     }
 };
 
+struct PosRefStoredData
+{
+    std::vector<float> pos_ref_x;
+    std::vector<float> pos_ref_y;
+    std::vector<float> pos_ref_z;
+    PosRefStoredData()
+    {}
+
+    PosRefStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        pos_ref_x = p1;
+        pos_ref_y = p2;
+        pos_ref_z = p3;
+    }
+};
+
+struct PosErrorStoredData
+{
+    std::vector<float> pos_error_x;
+    std::vector<float> pos_error_y;
+    std::vector<float> pos_error_z;
+    PosErrorStoredData()
+    {}
+
+    PosErrorStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        pos_error_x = p1;
+        pos_error_y = p2;
+        pos_error_z = p3;
+    }
+};
+
+struct PosErrorDotStoredData
+{
+    std::vector<float> pos_error_dot_x;
+    std::vector<float> pos_error_dot_y;
+    std::vector<float> pos_error_dot_z;
+    PosErrorDotStoredData()
+    {}
+
+    PosErrorDotStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        pos_error_dot_x = p1;
+        pos_error_dot_y = p2;
+        pos_error_dot_z = p3;
+    }
+};
+
+struct VelRefStoredData
+{
+    std::vector<float> vel_ref_x;
+    std::vector<float> vel_ref_y;
+    std::vector<float> vel_ref_z;
+    VelRefStoredData()
+    {}
+
+    VelRefStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        vel_ref_x = p1;
+        vel_ref_y = p2;
+        vel_ref_z = p3;
+    }
+};
+
+struct VelStoredData
+{
+    std::vector<float> vel_x;
+    std::vector<float> vel_y;
+    std::vector<float> vel_z;
+    VelStoredData()
+    {}
+
+    VelStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        vel_x = p1;
+        vel_y = p2;
+        vel_z = p3;
+    }
+};
+
+struct AccRefStoredData
+{
+    std::vector<float> acc_ref_x;
+    std::vector<float> acc_ref_y;
+    std::vector<float> acc_ref_z;
+    AccRefStoredData()
+    {}
+
+    AccRefStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        acc_ref_x = p1;
+        acc_ref_y = p2;
+        acc_ref_z = p3;
+    }
+};
+
+struct PqrRefStoredData
+{
+    std::vector<float> pqr_ref_x;
+    std::vector<float> pqr_ref_y;
+    std::vector<float> pqr_ref_z;
+    PqrRefStoredData()
+    {}
+
+    PqrRefStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        pqr_ref_x = p1;
+        pqr_ref_y = p2;
+        pqr_ref_z = p3;
+    }
+};
+
+struct PqrStoredData
+{
+    std::vector<float> pqr_x;
+    std::vector<float> pqr_y;
+    std::vector<float> pqr_z;
+    PqrStoredData()
+    {}
+
+    PqrStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        pqr_x = p1;
+        pqr_y = p2;
+        pqr_z = p3;
+    }
+};
+
+struct ThrustRefStoredData
+{
+    std::vector<float> current_thrust_ref_fb;
+    std::vector<float> current_thrust_ref_ff;
+    ThrustRefStoredData()
+    {}
+
+    ThrustRefStoredData(const std::vector<float>& p1, const std::vector<float>& p2)
+    {
+        current_thrust_ref_fb = p1;
+        current_thrust_ref_ff = p2;
+    }
+};
+
+struct OmegasStoredData
+{
+    std::vector<float> front_left;
+    std::vector<float> front_right;
+    std::vector<float> back_right;
+    std::vector<float> back_left;
+    OmegasStoredData()
+    {}
+
+    OmegasStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3, const std::vector<float>& p4)
+    {
+        front_left = p1;
+        front_right = p2;
+        back_right = p3;
+        back_left = p4;
+    }
+};
+
+struct YawRefStoredData
+{
+    std::vector<float> yaw_ref;
+    std::vector<float> yaw_ref_corrected;
+    YawRefStoredData()
+    {}
+
+    YawRefStoredData(const std::vector<float>& p1, const std::vector<float>& p2)
+    {
+        yaw_ref = p1;
+        yaw_ref_corrected = p2;
+    }
+};
+
+struct OrientationStoredData
+{
+    std::vector<float> orientation_x;
+    std::vector<float> orientation_y;
+    std::vector<float> orientation_z;
+    OrientationStoredData()
+    {}
+
+    OrientationStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        orientation_x = p1;
+        orientation_y = p2;
+        orientation_z = p3;
+    }
+};
+
+struct PositionIntegratorStoredData
+{
+    std::vector<float> position_integrator_x;
+    std::vector<float> position_integrator_y;
+    std::vector<float> position_integrator_z;
+    PositionIntegratorStoredData()
+    {}
+
+    PositionIntegratorStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        position_integrator_x = p1;
+        position_integrator_y = p2;
+        position_integrator_z = p3;
+    }
+};
+
+struct ThrustPiStoredData
+{
+    std::vector<float> thrust_P;
+    std::vector<float> thrust_I;
+    ThrustPiStoredData()
+    {}
+
+    ThrustPiStoredData(const std::vector<float>& p1, const std::vector<float>& p2)
+    {
+        thrust_P = p1;
+        thrust_I = p2;
+    }
+};
+
 struct IMUStoredData
 {
     std::vector<uint64_t> timestamps;
