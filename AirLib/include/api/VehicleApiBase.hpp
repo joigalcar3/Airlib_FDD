@@ -87,6 +87,11 @@ public:
         throw VehicleCommandNotImplementedException("getActuation API is not supported for this vehicle");
     }
 
+    virtual void collectAllData()
+    {
+        throw VehicleCommandNotImplementedException("collectAllData API is not supported for this vehicle");
+    }
+
     virtual std::vector<real_T> actuator_dyn(Kinematics::State previous)
     {
         unused(previous);
@@ -97,6 +102,13 @@ public:
     {
         unused(pose);
         throw VehicleCommandNotImplementedException("setNextPathLocObj API is not supported for this vehicle");
+    }
+
+    // Methods related to the general plotting data collection
+    virtual void setPlotDataCollectionAct(bool activate)
+    {
+        unused(activate);
+        throw VehicleCommandNotImplementedException("setPlotDataCollectionAct API is not supported for this vehicle");
     }
 
     // Methods related to the reference position data gathering
@@ -235,6 +247,29 @@ public:
     virtual std::vector<std::vector<float>> getAccRefStoredData()
     {
         throw VehicleCommandNotImplementedException("getAccRefStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the yaw transfer functions data gathering
+    virtual void storeYawTransferFcnData()
+    {
+        throw VehicleCommandNotImplementedException("storeYawTransferFcnData API is not supported for this vehicle");
+    }
+
+    virtual void setYawTransferFcnAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setYawTransferFcnAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanYawTransferFcnSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanYawTransferFcnSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getYawTransferFcnStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getYawTransferFcnStoredData API is not supported for this vehicle");
     }
 
     // Methods related to the reference rotational rates data gathering

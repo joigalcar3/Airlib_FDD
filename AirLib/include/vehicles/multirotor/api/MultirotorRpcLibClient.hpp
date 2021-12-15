@@ -24,6 +24,9 @@ public:
     MultirotorRpcLibClient* goHomeAsync(float timeout_sec = Utils::max<float>(), const std::string& vehicle_name = "");
     bool dummyprinter(float numerito, const std::string& vehicle_name = "");
 
+    // Methods related to the general gathering of plotting data
+    void setPlotDataCollectionActivation(bool activation, const std::string& vehicle_name = "");
+
     // Methods related to the reference position data gathering
     void setPosRefActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
     void cleanPosRefStoredData(const std::string& vehicle_name = "");
@@ -53,6 +56,11 @@ public:
     void setAccRefActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
     void cleanAccRefStoredData(const std::string& vehicle_name = "");
     AccRefStoredData getAccRefStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the yaw transfer function data gathering
+    void setYawTransferFcnActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanYawTransferFcnStoredData(const std::string& vehicle_name = "");
+    YawTransferFcnStoredData getYawTransferFcnStoredDataVec(const std::string& vehicle_name = "");
 
     // Methods related to the reference rotational rates data gathering
     void setPqrRefActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");

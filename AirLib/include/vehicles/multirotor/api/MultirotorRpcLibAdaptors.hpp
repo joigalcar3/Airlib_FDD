@@ -323,6 +323,30 @@ public:
         }
     };
 
+    struct YawTransferFcnStoredData {
+        std::vector<float> yaw_transfer_fcn_3;
+        std::vector<float> yaw_transfer_fcn_1;
+        std::vector<float> yaw_transfer_fcn_1_1;
+
+        MSGPACK_DEFINE_MAP(yaw_transfer_fcn_3, yaw_transfer_fcn_1, yaw_transfer_fcn_1_1);
+
+        YawTransferFcnStoredData()
+        {}
+
+        YawTransferFcnStoredData(msr::airlib::YawTransferFcnStoredData original)
+        {
+            yaw_transfer_fcn_3 = original.yaw_transfer_fcn_3;
+            yaw_transfer_fcn_1 = original.yaw_transfer_fcn_1;
+            yaw_transfer_fcn_1_1 = original.yaw_transfer_fcn_1_1;
+        }
+
+        msr::airlib::YawTransferFcnStoredData to() const
+        {
+            msr::airlib::YawTransferFcnStoredData d(yaw_transfer_fcn_3, yaw_transfer_fcn_1 , yaw_transfer_fcn_1_1);
+            return d;
+        }
+    };
+
     struct PqrRefStoredData {
         std::vector<float> pqr_ref_x;
         std::vector<float> pqr_ref_y;

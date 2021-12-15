@@ -257,6 +257,23 @@ struct AccRefStoredData
     }
 };
 
+struct YawTransferFcnStoredData
+{
+    std::vector<float> yaw_transfer_fcn_3;
+    std::vector<float> yaw_transfer_fcn_1;
+    std::vector<float> yaw_transfer_fcn_1_1;
+    
+    YawTransferFcnStoredData()
+    {}
+
+    YawTransferFcnStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        yaw_transfer_fcn_3 = p1;
+        yaw_transfer_fcn_1 = p2;
+        yaw_transfer_fcn_1_1 = p3;
+    }
+};
+
 struct PqrRefStoredData
 {
     std::vector<float> pqr_ref_x;

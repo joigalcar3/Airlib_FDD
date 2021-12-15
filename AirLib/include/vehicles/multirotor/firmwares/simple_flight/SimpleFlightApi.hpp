@@ -62,13 +62,28 @@ namespace msr {
                 pos_ref_low_pass_filter_z.reset();
 
                 // Low pass filter for pos error variables in order to avoid drastic changes
-                real_T ps_error_controller_lp_time_constant = 0.1f;    //time constant for low pass filter
+                real_T ps_error_controller_lp_time_constant = 0.2f;    //time constant for low pass filter
                 pos_error_low_pass_filter_x.initialize(ps_error_controller_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
                 pos_error_low_pass_filter_x.reset();                                         
                 pos_error_low_pass_filter_y.initialize(ps_error_controller_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
                 pos_error_low_pass_filter_y.reset();                           
                 pos_error_low_pass_filter_z.initialize(ps_error_controller_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
                 pos_error_low_pass_filter_z.reset();
+
+                // Low pass  filter for the velocity error
+                real_T v_error_controller_lp_time_constant = 0.05f;    //time constant for low pass filter
+                v_error_low_pass_filter_x.initialize(v_error_controller_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
+                v_error_low_pass_filter_x.reset();
+                v_error_low_pass_filter_y.initialize(v_error_controller_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
+                v_error_low_pass_filter_y.reset();
+                v_error_low_pass_filter_z.initialize(v_error_controller_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
+                v_error_low_pass_filter_z.reset();
+                
+
+                //// Low pass filter for the yaw reference
+                real_T yaw_ref_controller_lp_time_constant = 0.1f;    //time constant for low pass filter
+                yaw_ref_low_pass_filter.initialize(yaw_ref_controller_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
+                yaw_ref_low_pass_filter.reset();
 
                 // Low pass filter TransferFcn3
                 real_T heading_controller_lp_1_time_constant = 0.3f;    //time constant for low pass filter
@@ -79,7 +94,7 @@ namespace msr {
                 heading_low_pass_filter_2.initialize(heading_controller_lp_1_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
                 heading_low_pass_filter_2.reset();
 
-                // Low pass filter TransferFcn1
+                // Low pass filter TransferFcn2
                 real_T heading_controller_lp_3_time_constant = 0.01f;    //time constant for low pass filter
                 heading_low_pass_filter_3.initialize(heading_controller_lp_3_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
                 heading_low_pass_filter_3.reset();
@@ -90,11 +105,11 @@ namespace msr {
                 attitude_controller_low_pass_filter_x.reset();
                 attitude_controller_low_pass_filter_y.initialize(attitude_controller_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
                 attitude_controller_low_pass_filter_y.reset();
-                attitude_controller_low_pass_filter_z.initialize(attitude_controller_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
+                attitude_controller_low_pass_filter_z.initialize(attitude_controller_lp_time_constant, -1.0f, -1.0f, 0.0f, 0.0f, integration_method);
                 attitude_controller_low_pass_filter_z.reset();
 
                 // Low pass filter for pq_des
-                real_T pq_des_lp_time_constant = 0.05f;
+                real_T pq_des_lp_time_constant = 0.01f;
                 pq_des_low_pass_filter_1.initialize(pq_des_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
                 pq_des_low_pass_filter_1.reset();
                 pq_des_low_pass_filter_2.initialize(pq_des_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
@@ -119,24 +134,25 @@ namespace msr {
                     0.0f;
 
                 // Low pass filter for the actuator dynamics
-                actuator_low_pass_filter_1.initialize(t_w, 695.0f, 695.0f, 0.0f, 0.0f, integration_method);
-                actuator_low_pass_filter_1.reset();  
-                actuator_low_pass_filter_2.initialize(t_w, 695.0f, 695.0f, 0.0f, 0.0f, integration_method);
-                actuator_low_pass_filter_2.reset(); 
-                actuator_low_pass_filter_3.initialize(t_w, 695.0f, 695.0f, 0.0f, 0.0f, integration_method);
-                actuator_low_pass_filter_3.reset();
-                actuator_low_pass_filter_4.initialize(t_w, 695.0f, 695.0f, 0.0f, 0.0f, integration_method);
+                //real_T starting_rpm = 710.0f;
+                actuator_low_pass_filter_1.initialize(t_w, starting_rpm, starting_rpm, 0.0f, 0.0f, integration_method);
+                actuator_low_pass_filter_1.reset();   
+                actuator_low_pass_filter_2.initialize(t_w, starting_rpm, starting_rpm, 0.0f, 0.0f, integration_method);
+                actuator_low_pass_filter_2.reset();   
+                actuator_low_pass_filter_3.initialize(t_w, starting_rpm, starting_rpm, 0.0f, 0.0f, integration_method);
+                actuator_low_pass_filter_3.reset();  
+                actuator_low_pass_filter_4.initialize(t_w, starting_rpm, starting_rpm, 0.0f, 0.0f, integration_method);
                 actuator_low_pass_filter_4.reset();
 
                 // Low pass filter for w_obs
                 real_T w_obs_lp_time_constant = 0.4f;
-                w_obs_low_pass_filter_1.initialize(w_obs_lp_time_constant, 695.0f, 695.0f, 0.0f, 0.0f, integration_method);
-                w_obs_low_pass_filter_1.reset();                      
-                w_obs_low_pass_filter_2.initialize(w_obs_lp_time_constant, 695.0f, 695.0f, 0.0f, 0.0f, integration_method);
-                w_obs_low_pass_filter_2.reset();                  
-                w_obs_low_pass_filter_3.initialize(w_obs_lp_time_constant, 695.0f, 695.0f, 0.0f, 0.0f, integration_method);
-                w_obs_low_pass_filter_3.reset();                         
-                w_obs_low_pass_filter_4.initialize(w_obs_lp_time_constant, 695.0f, 695.0f, 0.0f, 0.0f, integration_method);
+                w_obs_low_pass_filter_1.initialize(w_obs_lp_time_constant, starting_rpm, starting_rpm, 0.0f, 0.0f, integration_method);
+                w_obs_low_pass_filter_1.reset();                           
+                w_obs_low_pass_filter_2.initialize(w_obs_lp_time_constant, starting_rpm, starting_rpm, 0.0f, 0.0f, integration_method);
+                w_obs_low_pass_filter_2.reset();                           
+                w_obs_low_pass_filter_3.initialize(w_obs_lp_time_constant, starting_rpm, starting_rpm, 0.0f, 0.0f, integration_method);
+                w_obs_low_pass_filter_3.reset();                          
+                w_obs_low_pass_filter_4.initialize(w_obs_lp_time_constant, starting_rpm, starting_rpm, 0.0f, 0.0f, integration_method);
                 w_obs_low_pass_filter_4.reset();
             }
 
@@ -182,12 +198,17 @@ namespace msr {
                 pos_error_low_pass_filter_x.resetImplementation();
                 pos_error_low_pass_filter_y.resetImplementation();
                 pos_error_low_pass_filter_z.resetImplementation();
+                v_error_low_pass_filter_x.resetImplementation();
+                v_error_low_pass_filter_y.resetImplementation();
+                v_error_low_pass_filter_z.resetImplementation();
+                yaw_ref_low_pass_filter.resetImplementation();
                 heading_low_pass_filter_1.resetImplementation();
                 heading_low_pass_filter_2.resetImplementation();
                 heading_low_pass_filter_3.resetImplementation();
                 attitude_controller_low_pass_filter_x.resetImplementation();
                 attitude_controller_low_pass_filter_y.resetImplementation();
                 attitude_controller_low_pass_filter_z.resetImplementation();
+                attitude_controller_low_pass_filter_z.setOutput(-1);
                 pq_des_low_pass_filter_1.resetImplementation();
                 pq_des_low_pass_filter_2.resetImplementation();
                 pqr_low_pass_filter_x.resetImplementation();
@@ -202,23 +223,6 @@ namespace msr {
                 w_obs_low_pass_filter_3.resetImplementation();
                 w_obs_low_pass_filter_4.resetImplementation();
 
-                pos_error_x_last = 0.0f;
-                pos_error_y_last = 0.0f;
-                pos_error_z_last = 0.0f;
-                v_error_x_last = 0.0f;
-                v_error_y_last = 0.0f;
-                v_error_z_last = 0.0f;
-                filtered_yaw_cmd_2_last = 0.0f;
-                filtered_r_cmd_last = 0.0f;
-                filtered_ndi_x_last = 0.0f;
-                filtered_ndi_y_last = 0.0f;
-                filtered_ndi_z_last = 0.0f;
-                filtered_pq_des_1_last = 0.0f;
-                filtered_pq_des_2_last = 0.0f;
-                filtered_pqr_x_last = 0.0f;
-                filtered_pqr_y_last = 0.0f;
-                filtered_pqr_z_last = 0.0f;
-
                 // Variables for the function within the yaw command block
                 theta_dot = 0.0f;
 
@@ -227,15 +231,18 @@ namespace msr {
                 pq_des_dot_2 = 0.0f;
 
                 // Variables of the INDI Allocator
-                omega_sum = 0.0f;
+                omega_sum = starting_omega_sum;
                 du_last << 0.0f,
                     0.0f,
                     0.0f,
                     0.0f;
-                w_f << 0.0f,
-                    0.0f,
-                    0.0f,
-                    0.0f;
+                w_f << starting_rpm,
+                    starting_rpm,
+                    starting_rpm,
+                    starting_rpm;
+
+                // Updating the states
+                teleported_drone = true;
 
                 firmware_->reset();
             }
@@ -245,32 +252,32 @@ namespace msr {
                 // Resetting all the created parameters for the INDI controller
                 // Dummy parameters
                 dummy = false;
-                dummy_yaw_ref = 0;
-                dummy_x = 0;
-                dummy_y = 0;
-                dummy_z = -3;
+                dummy_yaw_ref = 0.0f;
+                dummy_x = 0.0f;
+                dummy_y = 0.0f;
+                dummy_z = -3.0f;
 
                 // Integrators
                 last_time_integral = clock()->nowNanos();
-                integrator_pos_x = 0;
-                integrator_pos_x_dot_current = 0;
-                integrator_pos_x_dot_previous = 0;
-                integrator_pos_y = 0;
-                integrator_pos_y_dot_current = 0;
-                integrator_pos_y_dot_previous = 0;
-                integrator_pos_z = 0;
-                integrator_pos_z_dot_current = 0;
-                integrator_pos_z_dot_previous = 0;
-                integrator_thrust_ref = 0;
-                integrator_thrust_ref_dot_current = 0;
-                integrator_thrust_ref_dot_previous = 0;
+                integrator_pos_x = 0.0f;
+                integrator_pos_x_dot_current = 0.0f;
+                integrator_pos_x_dot_previous = 0.0f;
+                integrator_pos_y = 0.0f;
+                integrator_pos_y_dot_current = 0.0f;
+                integrator_pos_y_dot_previous = 0.0f;
+                integrator_pos_z = 0.0f;
+                integrator_pos_z_dot_current = 0.0f;
+                integrator_pos_z_dot_previous = 0.0f;
+                integrator_thrust_ref = 0.0f;
+                integrator_thrust_ref_dot_current = 0.0f;
+                integrator_thrust_ref_dot_previous = 0.0f;
 
                 // Parameters for the yawing
                 setYawRef(teleport_yaw_deg);
-                n_half_rotations = 0;
-                previous_yaw_sign = 0;
-                previous_yaw_angle = 0;
-                infinite_yaw_angle = 0;
+                n_half_rotations = 0.0f;
+                previous_yaw_sign = 0.0f;
+                previous_yaw_angle = 0.0f;
+                infinite_yaw_angle = 0.0f;
 
                 // First order time filters
                 pos_ref_low_pass_filter_x.resetImplementation();
@@ -285,6 +292,13 @@ namespace msr {
                 pos_error_low_pass_filter_y.resetImplementation();
                 pos_error_low_pass_filter_z.resetImplementation();
 
+                v_error_low_pass_filter_x.resetImplementation();
+                v_error_low_pass_filter_y.resetImplementation();
+                v_error_low_pass_filter_z.resetImplementation();
+
+                yaw_ref_low_pass_filter.resetImplementation();
+                yaw_ref_low_pass_filter.setOutput(teleport_yaw_deg * M_PIf / 180.0f);
+
                 heading_low_pass_filter_1.resetImplementation();
                 heading_low_pass_filter_1.setOutput(teleport_yaw_deg * M_PIf / 180.0f);
 
@@ -295,6 +309,7 @@ namespace msr {
                 attitude_controller_low_pass_filter_x.resetImplementation();
                 attitude_controller_low_pass_filter_y.resetImplementation();
                 attitude_controller_low_pass_filter_z.resetImplementation();
+                attitude_controller_low_pass_filter_z.setOutput(-1);
                 pq_des_low_pass_filter_1.resetImplementation();
                 pq_des_low_pass_filter_2.resetImplementation();
                 pqr_low_pass_filter_x.resetImplementation();
@@ -309,23 +324,6 @@ namespace msr {
                 w_obs_low_pass_filter_3.resetImplementation();
                 w_obs_low_pass_filter_4.resetImplementation();
 
-                pos_error_x_last = pos_ref.x();
-                pos_error_y_last = pos_ref.y();
-                pos_error_z_last = pos_ref.z();
-                v_error_x_last = 0;
-                v_error_y_last = 0;
-                v_error_z_last = 0;
-                filtered_yaw_cmd_2_last = teleport_yaw_deg * M_PIf / 180.0f;
-                filtered_r_cmd_last = 0;
-                filtered_ndi_x_last = 0;
-                filtered_ndi_y_last = 0;
-                filtered_ndi_z_last = 0;
-                filtered_pq_des_1_last = 0;
-                filtered_pq_des_2_last = 0;
-                filtered_pqr_x_last = 0;
-                filtered_pqr_y_last = 0;
-                filtered_pqr_z_last = 0;
-
                 // Variables for the function within the yaw command block
                 theta_dot = 0;
 
@@ -334,15 +332,18 @@ namespace msr {
                 pq_des_dot_2 = 0;
 
                 // Variables of the INDI Allocator
-                omega_sum = 0;
+                omega_sum = starting_omega_sum;
                 du_last << 0,
                     0,
                     0,
                     0;
-                w_f << 0,
-                    0,
-                    0,
-                    0;
+                w_f << starting_rpm,
+                    starting_rpm,
+                    starting_rpm,
+                    starting_rpm;
+
+                // Updating the states
+                teleported_drone = true;
             }
 
             virtual void update() override
@@ -392,51 +393,24 @@ namespace msr {
 
             virtual real_T getActuation(unsigned int rotor_index) override
             {
-                local_IMU_data = getImuData("");
-                storePosRefData();
-                storePosErrorData();
-                storePosErrorDotData();
-                storeVelRefData();
-                storeVelData();
-                storeAccRefData();
-                storePqrRefData();
-                storePqrData();
-                storeThrustRefData();
-                storeOmegasData();
-                storeYawRefData();
-                storeOrientationData();
-                storePositionIntegratorData();
-                storeThrustPiData();
-                storeIMUData();
-                storePWMData();
-                storePositionData();
-                storeBarometerData();
-                storeMagnetometerData();
-                storeGPSData();
-                //storeCameraData();
-                //auto control_signal_old = board_->getMotorControlSignal(rotor_index);
-                //real_T control_signal;
-                //if (locked_propeller[rotor_index] == true) {
-                //    control_signal = lock_coefficients[rotor_index];
-                //}
-                //else {
-                //    real_T prop_damage = propeller_damage_coefficients[rotor_index];
-                //    control_signal = control_signal_old * prop_damage;
-                //}
                 real_T control_signal;
-                if (w_f(rotor_index) < 50)
+                if (current_omegas[rotor_index] < 50)
                 {
                     control_signal = 0.0f;
                 }
                 else 
                 {
-                    control_signal = w_f(rotor_index) / w_max;
+                    control_signal = current_omegas[rotor_index] / w_max;
                 }
                 return control_signal;
             }
 
             // Implementing the INDI controller
             // Structs used as the output of some methods
+            struct filt_der {
+                real_T filtered;
+                real_T derivative;
+            };
             struct a_thrust_ref {
                 Vector3r a_ref;
                 real_T thrust_ref_fb;
@@ -451,17 +425,17 @@ namespace msr {
             };
 
             // Helper function
-            real_T filter_derivative(FirstOrderFilter<real_T>& low_pass_filter, real_T& filter_input, real_T& filtered_input_last)
+            real_T filter_derivative(FirstOrderFilter<real_T>& low_pass_filter, real_T filter_input)
             {
                 low_pass_filter.setInput(filter_input);
                 low_pass_filter.update();
-                real_T filtered_input = low_pass_filter.getOutput();
-                real_T filtered_input_dot = (filtered_input - filtered_input_last) / dt_real_integration;
-                filtered_input_last = filtered_input;
+                real_T output_difference = low_pass_filter.getOutputDifference();
+                real_T filtered_input_dot = output_difference / dt_real_integration;
+                //filtered_input_last = filtered_input;
                 return filtered_input_dot;
             }
 
-            real_T only_filter(FirstOrderFilter<real_T>& low_pass_filter, real_T& filter_input)
+            real_T only_filter(FirstOrderFilter<real_T>& low_pass_filter, real_T filter_input)
             {
                 low_pass_filter.setInput(filter_input);
                 low_pass_filter.update();
@@ -469,7 +443,17 @@ namespace msr {
                 return filtered_input;
             }
 
-            real_T apply_integral(real_T integrator_current, real_T& x_dot_previous, real_T& x_dot_current, real_T& x_dot_next, real_T dt_real)
+            auto filter_and_derivative(FirstOrderFilter<real_T>& low_pass_filter, real_T filter_input)
+            {
+                low_pass_filter.setInput(filter_input);
+                low_pass_filter.update();
+                real_T filtered_input = low_pass_filter.getOutput();
+                real_T output_difference = low_pass_filter.getOutputDifference();
+                real_T filtered_input_dot = output_difference / dt_real_integration;
+                return filt_der{ filtered_input, filtered_input_dot };
+            }
+
+            real_T apply_integral(real_T integrator_current, real_T& x_dot_previous, real_T& x_dot_current, real_T x_dot_next, real_T dt_real)
             {
                 if (integration_method == 0)  // Verlet algorithm
                 {
@@ -641,7 +625,7 @@ namespace msr {
                 Vector3r velocity;
                 Vector3r attitude;
                 Vector3r pqr;
-                if (one_step_back_dyn)
+                if (one_step_back_dyn && !teleported_drone)
                 {
                     real_T pitch, roll, yaw;
                     VectorMath::toEulerianAngle(previous_.pose.orientation, pitch, roll, yaw);
@@ -649,6 +633,16 @@ namespace msr {
                     velocity = previous_.twist.linear;
                     attitude = Vector3r(roll, pitch, yaw);
                     pqr = previous_.twist.angular;
+                }
+                else if (teleported_drone)
+                {
+                    real_T pitch, roll, yaw;
+                    VectorMath::toEulerianAngle(getOrientation(), pitch, roll, yaw);
+                    attitude = Vector3r(0, 0, yaw);
+                    position = getKinematicsEstimated().pose.position;
+                    velocity = Vector3r(0, 0, 0);
+                    pqr = Vector3r(0, 0, 0);
+                    teleported_drone = false;
                 }
                 else
                 {
@@ -690,6 +684,11 @@ namespace msr {
                 Vector3r position = xyz_states;
                 Vector3r velocity = vxyz_states;
                 Vector3r pos_ref = getPosRef();
+                if (pos_ref_data.size() > 20)
+                {
+                    pos_ref.x() = position.x() - 2;
+                }
+
                 if (dummy)
                 {
                     pos_ref.x() = dummy_x;
@@ -699,68 +698,54 @@ namespace msr {
                 
                 if (correct_start)
                 {
+                    real_T total_velocity = sqrt(velocity.x() * velocity.x() + velocity.y() * velocity.y() + velocity.z() * velocity.z());
                     real_T error_x = abs(pos_ref.x() - position.x());
                     real_T alpha_x = 1.0f / (1.0f + alpha_tuning * error_x);
-                    real_T v_x = v_tuning_1 * (1.0f / (1.0f + std::exp(-v_tuning_2 * abs(velocity.x()))) - v_tuning_3);
+                    real_T v_x = v_tuning_1 * (1.0f / (1.0f + std::exp(-v_tuning_2 * total_velocity)) - v_tuning_3);
                     int sign_x = (0 < (pos_ref.x() - position.x())) - ((pos_ref.x() - position.x()) < 0);
                     pos_ref.x() = position.x() + sign_x * (alpha_x * error_x + (1 - alpha_x) * error_x * v_x);
 
                     real_T error_y = abs(pos_ref.y() - position.y());
                     real_T alpha_y = 1.0f / (1.0f + alpha_tuning * error_y);
-                    real_T v_y = v_tuning_1 * (1.0f / (1.0f + std::exp(-v_tuning_2 * abs(velocity.y()))) - v_tuning_3);
+                    real_T v_y = v_tuning_1 * (1.0f / (1.0f + std::exp(-v_tuning_2 * total_velocity)) - v_tuning_3);
                     int sign_y = (0 < (pos_ref.y() - position.y())) - ((pos_ref.y() - position.y()) < 0);
                     pos_ref.y() = position.y() + sign_y * (alpha_y * error_y + (1 - alpha_y) * error_y * v_y);
 
                     real_T error_z = abs(pos_ref.z() - position.z());
                     real_T alpha_z = 1.0f / (1.0f + alpha_tuning * error_z);
-                    real_T v_z = v_tuning_1 * (1.0f / (1.0f + std::exp(-v_tuning_2 * abs(velocity.z()))) - v_tuning_3);
+                    real_T v_z = v_tuning_1 * (1.0f / (1.0f + std::exp(-v_tuning_2 * total_velocity)) - v_tuning_3);
                     int sign_z = (0 < (pos_ref.z() - position.z())) - ((pos_ref.z() - position.z()) < 0);
                     pos_ref.z() = position.z() + sign_z * (alpha_z * error_z + (1 - alpha_z) * error_z * v_z);
-
-                    //pos_ref.x() = abs(pos_ref.x() - position.x()) * std::max((1 - 1 / (velocity.x() * 10 + 0.0000001)), 0.25) + position.x();
-                    //pos_ref.y() = (pos_ref.y() - position.y()) * std::max((1 - 1 / (velocity.y() * 10 + 0.0000001)), 0.25) + position.y();
-                    //pos_ref.z() = (pos_ref.z() - position.z()) * std::max((1 - 1 / (velocity.z() * 10 + 0.0000001)), 0.25) + position.z();
                 }
-                
 
-                //// Filtered position reference
+                // Filtered position reference
                 pos_ref.x() = only_filter(pos_ref_low_pass_filter_x, pos_ref.x());
                 pos_ref.y() = only_filter(pos_ref_low_pass_filter_y, pos_ref.y());
                 pos_ref.z() = only_filter(pos_ref_low_pass_filter_z, pos_ref.z());
 
                 // Computing position error
                 Vector3r pos_error = pos_ref - position;
-                //pos_error.x() = only_filter(pos_error_low_pass_filter_x, pos_error.x());
-                //pos_error.y() = only_filter(pos_error_low_pass_filter_y, pos_error.y());
-                //pos_error.z() = only_filter(pos_error_low_pass_filter_z, pos_error.z());
+                filt_der f_and_d_x = filter_and_derivative(pos_error_low_pass_filter_x, pos_error.x());
+                pos_error.x() = f_and_d_x.filtered;
+                real_T pos_error_x_dot = f_and_d_x.derivative;
 
-                // Checking whether the oscillations are caused by decimal problems: float is not enough
-                //pos_error.x() = (float)std::floor((pos_ref.x() - position.x()) * 1000000) / 1000000;
-                //pos_error.y() = (float)std::floor((pos_ref.y() - position.y()) * 1000000) / 1000000;
-                //pos_error.z() = (float)std::floor((pos_ref.z() - position.z()) * 1000000) / 1000000;
-                //auto potato = std::floor((pos_ref.x() - position.x()) * 1000000) / 1000000;
-                //auto tomato = std::floor(((float)pos_ref.x() - (float)position.x()) * 1000000) / 1000000;
+                filt_der f_and_d_y = filter_and_derivative(pos_error_low_pass_filter_y, pos_error.y());
+                pos_error.y() = f_and_d_y.filtered;
+                real_T pos_error_y_dot = f_and_d_y.derivative;
 
-                // Computing the position derivative
-                real_T pos_error_x_dot = (pos_error.x() - pos_error_x_last) / dt_real_integration;
-                pos_error_x_last = pos_error.x();
-                real_T pos_error_y_dot = (pos_error.y() - pos_error_y_last) / dt_real_integration;
-                pos_error_y_last = pos_error.y();
-                real_T pos_error_z_dot = (pos_error.z() - pos_error_z_last) / dt_real_integration;
-                pos_error_z_last = pos_error.z();
-                Vector3r pos_error_dot(pos_error_x_dot, pos_error_y_dot, pos_error_z_dot);
+                filt_der f_and_d_z = filter_and_derivative(pos_error_low_pass_filter_z, pos_error.z());
+                pos_error.z() = f_and_d_z.filtered;
+                real_T pos_error_z_dot = f_and_d_z.derivative;
+                Vector3r pos_error_dot(pos_D * pos_error_x_dot, pos_D * pos_error_y_dot, 0 * pos_error_z_dot);
 
                 // Computing reference velocity
-                Vector3r v_ref = pos_P * pos_error + pos_D * pos_error_dot;
+                Vector3r v_ref = pos_P * pos_error + pos_error_dot;
 
                 // Computing velocity error and its derivative
                 Vector3r v_error = v_ref - velocity;
-                real_T v_error_x_dot = (v_error.x() - v_error_x_last) / dt_real_integration;
-                v_error_x_last = v_error.x();
-                real_T v_error_y_dot = (v_error.y() - v_error_y_last) / dt_real_integration;
-                v_error_y_last = v_error.y();
-                real_T v_error_z_dot = (v_error.z() - v_error_z_last) / dt_real_integration;
-                v_error_z_last = v_error.z();
+                real_T v_error_x_dot = filter_derivative(v_error_low_pass_filter_x, v_error.x());
+                real_T v_error_y_dot = filter_derivative(v_error_low_pass_filter_y, v_error.y());
+                real_T v_error_z_dot = filter_derivative(v_error_low_pass_filter_z, v_error.z());
                 Vector3r v_error_dot(v_error_x_dot, v_error_y_dot, v_error_z_dot);
 
                 // Computing the integration of the position error
@@ -771,11 +756,11 @@ namespace msr {
                 Vector3r pos_i_term(pos_I * integrator_pos_x, pos_I * integrator_pos_y, 0 * integrator_pos_z);
 
                 // Computing the reference acceleration
-                Vector3r a_ref = v_ref + pos_i_term + vel_P * v_error + vel_D * v_error_dot;
+                Vector3r a_ref = vel_ff * v_ref + pos_i_term + vel_P * v_error + vel_D * v_error_dot;
 
                 // Computing the reference thrust value
                 integrator_thrust_ref = apply_integral(integrator_thrust_ref, integrator_thrust_ref_dot_previous, integrator_thrust_ref_dot_current, pos_error.z(), dt_real_integration);
-                real_T thrust_ref_fb = thrust_P * pos_error.z() + thrust_I * integrator_thrust_ref;
+                real_T thrust_ref_fb = thrust_P * pos_error.z() + thrust_I * integrator_thrust_ref + thrust_D * pos_error_z_dot;
 
                 // Storing values for debugging and plotting
                 current_pos_ref = pos_ref;
@@ -826,19 +811,6 @@ namespace msr {
                 // Obtaining block inputs
                 // The next line obtain yaw_ref from the AirSim outer loop
                 real_T yaw_ref = getYawRef() * M_PIf / 180.0f;
-
-                // The following lines compute the yaw ref using the position and reference location
-                //const Vector3r cur = getKinematicsEstimated().pose.position;
-                //const Vector3r heading = current_pos_ref - cur;
-                //real_T yaw_ref;
-                //if (heading.norm() > getDistanceAccuracy()) {
-                //    yaw_ref = std::atan2(heading.y(), heading.x()) * 180 / M_PIf;
-                //    yaw_ref = VectorMath::normalizeAngle(yaw_ref);
-                //}
-                //else
-                //    yaw_ref = 0;
-                //yaw_ref = yaw_ref * M_PIf / 180;
-
                 real_T roll = att_states.x();
                 real_T pitch = att_states.y();
                 real_T yaw = att_states.z();
@@ -884,6 +856,10 @@ namespace msr {
                 {
                     yaw_ref = dummy_yaw_ref;
                 }
+                
+                // Apply a first order filter to the yaw as with the position
+                yaw_ref = only_filter(yaw_ref_low_pass_filter, yaw_ref);
+
                 current_corrected_yaw_ref = yaw_ref;
                 current_orientation.x() = roll;
                 current_orientation.y() = pitch;
@@ -891,21 +867,25 @@ namespace msr {
 
                 // TransferFcn3
                 real_T filtered_yaw_cmd_1 = only_filter(heading_low_pass_filter_1, yaw_ref);
+                stored_yaw_transfer_fcn_3 = filtered_yaw_cmd_1;
 
                 // TransferFcn1
-                real_T filtered_yaw_cmd_2_dot = filter_derivative(heading_low_pass_filter_2, filtered_yaw_cmd_1, filtered_yaw_cmd_2_last);
+                real_T filtered_yaw_cmd_2_dot = filter_derivative(heading_low_pass_filter_2, filtered_yaw_cmd_1);
+                stored_yaw_transfer_fcn_1 = filtered_yaw_cmd_2_dot;
+                stored_yaw_transfer_fcn_1_1 = 0;
 
                 // Obtaining psi_dot_cmd
-                real_T psi_dot_cmd = (filtered_yaw_cmd_1 - yaw) * psi_P + filtered_yaw_cmd_2_dot;
+                real_T psi_dot_cmd = (filtered_yaw_cmd_1 - yaw) * psi_P + filtered_yaw_cmd_2_dot * psi_D;
 
                 // Obtaining r_ref
                 real_T r_ref = psi_dot_cmd * cos(roll) * cos(pitch) - sin(roll) * theta_dot;
+                current_pqr_ref.z() = r_ref;
 
                 // TransferFcn2
-                real_T filtered_r_cmd_dot = filter_derivative(heading_low_pass_filter_3, r_ref, filtered_r_cmd_last);
+                real_T filtered_r_cmd_dot = filter_derivative(heading_low_pass_filter_3, r_ref);
 
                 // Obtaining r_dot_comd
-                real_T r_dot_cmd = (r_ref - r) * r_P + filtered_r_cmd_dot;
+                real_T r_dot_cmd = (r_ref - r) * r_P + filtered_r_cmd_dot * r_D;
 
                 return r_dot_cmd;
             }
@@ -925,9 +905,9 @@ namespace msr {
                 current_pqr = pqr;
 
                 // Obtaining ndi_dot
-                real_T filtered_nid_x_dot = filter_derivative(attitude_controller_low_pass_filter_x, nd_i.x(), filtered_ndi_x_last);
-                real_T filtered_nid_y_dot = filter_derivative(attitude_controller_low_pass_filter_y, nd_i.y(), filtered_ndi_y_last);
-                real_T filtered_nid_z_dot = filter_derivative(attitude_controller_low_pass_filter_z, nd_i.z(), filtered_ndi_z_last);
+                real_T filtered_nid_x_dot = filter_derivative(attitude_controller_low_pass_filter_x, nd_i.x());
+                real_T filtered_nid_y_dot = filter_derivative(attitude_controller_low_pass_filter_y, nd_i.y());
+                real_T filtered_nid_z_dot = filter_derivative(attitude_controller_low_pass_filter_z, nd_i.z());
 
                 Vector3r ndi_dot(filtered_nid_x_dot, filtered_nid_y_dot, filtered_nid_z_dot);
 
@@ -946,15 +926,16 @@ namespace msr {
                 real_T pq_des_2 = -(nxdot_cmd - h.y() * pqr.z() + ndi_dot_b.x()) / h.z();
 
                 // compute command M based on NDI
-                real_T p_dot_cmd = pq_des_dot_1 + kp_gain * (pqr.x() - pq_des_1);
-                real_T q_dot_cmd = pq_des_dot_2 + kq_gain * (pqr.y() - pq_des_2);
+                real_T p_dot_cmd = kp_dot_gain * pq_des_dot_1 + kp_gain * (pqr.x() - pq_des_1);
+                real_T q_dot_cmd = kq_dot_gain * pq_des_dot_2 + kq_gain * (pqr.y() - pq_des_2);
 
                 // Compute the pq_des_dot from the comptued pq_des
-                pq_des_dot_1 = filter_derivative(pq_des_low_pass_filter_1, pq_des_1, filtered_pq_des_1_last);
-                pq_des_dot_2 = filter_derivative(pq_des_low_pass_filter_2, pq_des_2, filtered_pq_des_2_last);
+                pq_des_dot_1 = filter_derivative(pq_des_low_pass_filter_1, pq_des_1);
+                pq_des_dot_2 = filter_derivative(pq_des_low_pass_filter_2, pq_des_2);
 
                 Vector3r u_pqr(p_dot_cmd, q_dot_cmd, r_dot_cmd);
-                current_pqr_ref = u_pqr;
+                current_pqr_ref.x() = pq_des_1;
+                current_pqr_ref.y() = pq_des_2;
                 return u_pqr_omega_ref{ omega_sum_ref, u_pqr };;
             }
 
@@ -967,9 +948,9 @@ namespace msr {
                 real_T omega_sum_ref = attitude_controller_input.omega_sum_ref;
 
                 // Low pass filter and derivative of pqr
-                real_T filtered_pqr_x_dot = filter_derivative(pqr_low_pass_filter_x, pqr.x(), filtered_pqr_x_last);
-                real_T filtered_pqr_y_dot = filter_derivative(pqr_low_pass_filter_y, pqr.y(), filtered_pqr_y_last);
-                real_T filtered_pqr_z_dot = filter_derivative(pqr_low_pass_filter_z, pqr.z(), filtered_pqr_z_last);
+                real_T filtered_pqr_x_dot = filter_derivative(pqr_low_pass_filter_x, pqr.x());
+                real_T filtered_pqr_y_dot = filter_derivative(pqr_low_pass_filter_y, pqr.y());
+                real_T filtered_pqr_z_dot = filter_derivative(pqr_low_pass_filter_z, pqr.z());
 
                 Vector3r Omega_f_dot(filtered_pqr_x_dot, filtered_pqr_y_dot, filtered_pqr_z_dot);
 
@@ -1002,8 +983,13 @@ namespace msr {
                     // In the case that the propeller is not broken
                     G2 << 0.0f, 0.0f, 0.0f, 0.0f,
                         0.0f, 0.0f, 0.0f, 0.0f,
-                        signr * -0.0612093, signr * 0.0653670, signr * -0.0657419, signr * 0.0654516,
+                        signr * -G2_31, signr * G2_32, signr * -G2_33, signr * G2_34,
                         0.0f, 0.0f, 0.0f, 0.0f;
+                    //G2 << 0.000036655, -0.000036655, 0.000036655, -0.000036655,
+                    //    0.0f, 0.0f, 0.0f, 0.0f,
+                    //    signr * -0.0027, signr * 0.0027, signr * -0.0027, signr * 0.0027,
+                    //    0.0f, 0.0f, 0.0f, 0.0f;
+                    G2 = G2 / 1000.0f;
                     du = (G / 1000.0f + G2).inverse() * (dnu + G2 * du_last) * 2.0f * M_PIf / 60.0f;
                 }
                 else
@@ -1057,7 +1043,6 @@ namespace msr {
                 {
                     w_cmd(failed-1) = 0.0;
                 }
-
                 return w_cmd;
             }
 
@@ -1100,13 +1085,49 @@ namespace msr {
                 w_f(3) = filtered_w_obs_4;
                 omega_sum = filtered_w_obs_1 + filtered_w_obs_2 + filtered_w_obs_3 + filtered_w_obs_4;
                 current_omegas = omega;
+
+                collectAllData();
                 return omega;
+            }
+
+            // Function that calls all methods that collect data
+            virtual void collectAllData() override
+            {
+                local_IMU_data = getImuData("");
+                storePosRefData();
+                storePosErrorData();
+                storePosErrorDotData();
+                storeVelRefData();
+                storeVelData();
+                storeYawTransferFcnData();
+                storeAccRefData();
+                storePqrRefData();
+                storePqrData();
+                storeThrustRefData();
+                storeOmegasData();
+                storeYawRefData();
+                storeOrientationData();
+                storePositionIntegratorData();
+                storeThrustPiData();
+                //storeCameraData();
+                storeIMUData();
+                storePWMData();
+                storePositionData();
+                storeBarometerData();
+                storeMagnetometerData();
+                storeGPSData();
+            }
+
+            // Methods related to the activation of general data collection for plotting
+            void setPlotDataCollectionAct(bool activation) override
+            {
+                plot_data_collection_switch = activation;
             }
 
             // Methods related to the data gathering of position reference
             void storePosRefData() override
             {
-                if (pos_ref_activate_store) {
+                if (pos_ref_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_pos_ref_data = { current_pos_ref.x(), current_pos_ref.y(), current_pos_ref.z()};
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int pos_ref_threshold = UE4_second / pos_ref_sample_rate;
@@ -1138,7 +1159,7 @@ namespace msr {
             // Methods related to the data gathering of position reference
             void storePosErrorData() override
             {
-                if (pos_error_activate_store) {
+                if (pos_error_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_pos_error_data = { current_pos_error.x(), current_pos_error.y(), current_pos_error.z() };
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int pos_error_threshold = UE4_second / pos_error_sample_rate;
@@ -1170,7 +1191,7 @@ namespace msr {
             // Methods related to the data gathering of position error derivative
             void storePosErrorDotData() override
             {
-                if (pos_error_dot_activate_store) {
+                if (pos_error_dot_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_pos_error_dot_data = { current_pos_error_dot.x(), current_pos_error_dot.y(), current_pos_error_dot.z() };
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int pos_error_dot_threshold = UE4_second / pos_error_dot_sample_rate;
@@ -1202,7 +1223,7 @@ namespace msr {
             // Methods related to the data gathering of velocity reference
             void storeVelRefData() override
             {
-                if (vel_ref_activate_store) {
+                if (vel_ref_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_vel_ref_data = { current_vel_ref.x(), current_vel_ref.y(), current_vel_ref.z() };
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int vel_ref_threshold = UE4_second / vel_ref_sample_rate;
@@ -1234,7 +1255,7 @@ namespace msr {
             // Methods related to the data gathering of velocity
             void storeVelData() override
             {
-                if (vel_activate_store) {
+                if (vel_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_vel_data = { current_vel.x(), current_vel.y(), current_vel.z() };
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int vel_threshold = UE4_second / vel_sample_rate;
@@ -1266,7 +1287,7 @@ namespace msr {
             // Methods related to the data gathering of reference acceleration
             void storeAccRefData() override
             {
-                if (acc_ref_activate_store) {
+                if (acc_ref_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_acc_ref_data = { current_acc_ref.x(), current_acc_ref.y(), current_acc_ref.z() };
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int acc_ref_threshold = UE4_second / acc_ref_sample_rate;
@@ -1295,10 +1316,43 @@ namespace msr {
                 return acc_ref_data;
             }
 
+            // Methods related to the data gathering of yaw transfer functions
+            void storeYawTransferFcnData() override
+            {
+                if (yaw_transfer_fcn_activate_store && plot_data_collection_switch) {
+                    std::vector<float> local_yaw_transfer_fcn_data = { stored_yaw_transfer_fcn_3, stored_yaw_transfer_fcn_1 , stored_yaw_transfer_fcn_1_1 };
+                    uint64_t time_new = local_IMU_data.time_stamp;
+                    int yaw_transfer_fcn_threshold = UE4_second / yaw_transfer_fcn_sample_rate;
+                    uint64_t time_threshold = yaw_transfer_fcn_time_old + yaw_transfer_fcn_threshold;
+                    if (time_new >= time_threshold) {
+                        yaw_transfer_fcn_time_old = time_new;
+                        yaw_transfer_fcn_data.push_back(local_yaw_transfer_fcn_data);
+                    }
+                }
+            }
+
+            void setYawTransferFcnAct(bool activation, float sample_rate) override
+            {
+                yaw_transfer_fcn_activate_store = activation;
+                yaw_transfer_fcn_sample_rate = sample_rate;
+            }
+
+            void cleanYawTransferFcnSD() override
+            {
+                yaw_transfer_fcn_activate_store = false;
+                yaw_transfer_fcn_data.clear();
+            }
+
+            std::vector<std::vector<float>> getYawTransferFcnStoredData() override
+            {
+                return yaw_transfer_fcn_data;
+            }
+
+
             // Methods related to the data gathering of reference rotational rates 
             void storePqrRefData() override
             {
-                if (pqr_ref_activate_store) {
+                if (pqr_ref_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_pqr_ref_data = { current_pqr_ref.x(), current_pqr_ref.y(), current_pqr_ref.z() };
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int pqr_ref_threshold = UE4_second / pqr_ref_sample_rate;
@@ -1330,7 +1384,7 @@ namespace msr {
             // Methods related to the data gathering of rotational rates 
             void storePqrData() override
             {
-                if (pqr_activate_store) {
+                if (pqr_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_pqr_data = { current_pqr.x(), current_pqr.y(), current_pqr.z() };
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int pqr_threshold = UE4_second / pqr_sample_rate;
@@ -1362,7 +1416,7 @@ namespace msr {
             // Methods related to the data gathering of reference thrust 
             void storeThrustRefData() override
             {
-                if (pqr_ref_activate_store) {
+                if (pqr_ref_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_thrust_ref_data = { current_thrust_ref_fb, current_thrust_ref_ff };
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int thrust_ref_threshold = UE4_second / thrust_ref_sample_rate;
@@ -1394,7 +1448,7 @@ namespace msr {
             // Methods related to the data gathering of reference thrust 
             void storeOmegasData() override
             {
-                if (pqr_ref_activate_store) {
+                if (pqr_ref_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_omegas_data = current_omegas;
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int omegas_threshold = UE4_second / omegas_sample_rate;
@@ -1426,7 +1480,7 @@ namespace msr {
             // Methods related to the data gathering of yaw reference
             void storeYawRefData() override
             {
-                if (yaw_ref_activate_store) {
+                if (yaw_ref_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_yaw_ref_data = { current_yaw_ref, current_corrected_yaw_ref };
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int yaw_ref_threshold = UE4_second / yaw_ref_sample_rate;
@@ -1458,7 +1512,7 @@ namespace msr {
             // Methods related to the data gathering of orientation data (phi, theta and psi)
             void storeOrientationData() override
             {
-                if (orientation_activate_store) {
+                if (orientation_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_orientation_ref_data = { current_orientation.x(),  current_orientation.y(), current_orientation.z()};
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int orientation_threshold = UE4_second / orientation_sample_rate;
@@ -1490,7 +1544,7 @@ namespace msr {
             // Methods related to the data gathering of the position integrator within the first subsystem of the primary axis INDI controller
             void storePositionIntegratorData() override
             {
-                if (position_integrator_activate_store) {
+                if (position_integrator_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_position_integrator_data = { current_position_integrator.x(),  current_position_integrator.y(), current_position_integrator.z() };
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int position_integrator_threshold = UE4_second / position_integrator_sample_rate;
@@ -1522,7 +1576,7 @@ namespace msr {
             // Methods related to the data gathering of the PI thrust controller within the first subsystem of the primary axis INDI controller
             void storeThrustPiData() override
             {
-                if (thrust_PI_activate_store) {
+                if (thrust_PI_activate_store && plot_data_collection_switch) {
                     std::vector<float> local_thrust_PI_data = { current_thrust_P,  current_thrust_I };
                     uint64_t time_new = local_IMU_data.time_stamp;
                     int thrust_PI_threshold = UE4_second / thrust_PI_sample_rate;
@@ -2182,6 +2236,9 @@ namespace msr {
             int failed = 0;
 
             // Dummy variables
+            real_T starting_rpm = 813.54f;
+            real_T starting_omega_sum = 3254.16f;
+            bool teleported_drone = false;
             bool dummy = false;
             bool correct_start = false;
             real_T dummy_yaw_ref = 0;
@@ -2214,9 +2271,9 @@ namespace msr {
             Vector3r vxyz_states;
 
             // Variables for the tuning of the smoothing of the initial acceleration
-            real_T alpha_tuning = 10;
-            real_T v_tuning_1 = 2;
-            real_T v_tuning_2 = 4;
+            real_T alpha_tuning = 10.;
+            real_T v_tuning_1 = 2.;
+            real_T v_tuning_2 = 4.;
             real_T v_tuning_3 = 0.5;
 
             // Members for fixing the controller
@@ -2247,20 +2304,39 @@ namespace msr {
             //real_T psi_P = 20.;
             //real_T r_P = 40.;
 
-            real_T vel_P = 1.5;
-            real_T vel_D = 0;
-            real_T pos_P = 0.5;
-            real_T pos_I = 0;
-            real_T pos_D = 0;
+            //real_T vel_P = 0.6;
+            //real_T vel_D = 0.;
+            //real_T vel_ff = 0.;
+            //real_T pos_P = 1.5;
+            //real_T pos_I = 0.;
+            //real_T pos_D = 0.9;
+            //real_T thrust_P = 4.;
+            //real_T thrust_I = 0.;
+            //real_T thrust_D = 2.;
+            //real_T psi_P = 5.;
+            //real_T psi_D = 1.;
+            //real_T r_P = 30.;
+            //real_T r_D = 30.;
+
+
+            real_T vel_P = 0.6;
+            real_T vel_D = 0.;
+            real_T vel_ff = 0.;
+            real_T pos_P = 2.;
+            real_T pos_I = 0.;
+            real_T pos_D = 3.;
             real_T thrust_P = 8.;
-            real_T thrust_I = 0.5;
-            real_T psi_P = 20.;
+            real_T thrust_I = 0.;
+            real_T thrust_D = 4.;
+            real_T psi_P = 35.;
+            real_T psi_D = 10.;
             real_T r_P = 40.;
+            real_T r_D = 40.;
 
             // Parameters for the computation of nd_i directly from a
             real_T gravity_Delft = 9.8124;
             real_T specific_thrust_2_omegasqure = 4.7197e6 / 0.8;
-            real_T rpm2rad = 2 * M_PIf / 60;
+            real_T rpm2rad = 2. * M_PIf / 60.;
 
             // Parameters for the yawing
             real_T teleport_yaw_deg = 0;
@@ -2272,13 +2348,17 @@ namespace msr {
             real_T maximum_yaw_dif = 10000000000;
 
             // Variables for the first order time filters
-            int integration_method = 1;
+            int integration_method = 2;
             FirstOrderFilter<real_T> pos_ref_low_pass_filter_x;
             FirstOrderFilter<real_T> pos_ref_low_pass_filter_y;
             FirstOrderFilter<real_T> pos_ref_low_pass_filter_z;
             FirstOrderFilter<real_T> pos_error_low_pass_filter_x;
             FirstOrderFilter<real_T> pos_error_low_pass_filter_y;
             FirstOrderFilter<real_T> pos_error_low_pass_filter_z;
+            FirstOrderFilter<real_T> v_error_low_pass_filter_x;
+            FirstOrderFilter<real_T> v_error_low_pass_filter_y;
+            FirstOrderFilter<real_T> v_error_low_pass_filter_z;
+            FirstOrderFilter<real_T> yaw_ref_low_pass_filter;
             FirstOrderFilter<real_T> heading_low_pass_filter_1;
             FirstOrderFilter<real_T> heading_low_pass_filter_2;
             FirstOrderFilter<real_T> heading_low_pass_filter_3;
@@ -2298,34 +2378,30 @@ namespace msr {
             FirstOrderFilter<real_T> w_obs_low_pass_filter_2;
             FirstOrderFilter<real_T> w_obs_low_pass_filter_3;
             FirstOrderFilter<real_T> w_obs_low_pass_filter_4;
-            real_T pos_error_x_last = 0;
-            real_T pos_error_y_last = 0;
-            real_T pos_error_z_last = 0;
-            real_T v_error_x_last = 0;
-            real_T v_error_y_last = 0;
-            real_T v_error_z_last = 0;
-            real_T filtered_yaw_cmd_2_last = 0;
-            real_T filtered_r_cmd_last = 0;
-            real_T filtered_ndi_x_last = 0;
-            real_T filtered_ndi_y_last = 0;
-            real_T filtered_ndi_z_last = 0;
-            real_T filtered_pq_des_1_last = 0;
-            real_T filtered_pq_des_2_last = 0;
-            real_T filtered_pqr_x_last = 0;
-            real_T filtered_pqr_y_last = 0;
-            real_T filtered_pqr_z_last = 0;
 
             // Variables for the function within the yaw command block
             real_T theta_dot = 0;
 
             // Variables for the attitude controller block
+            //Vector3r primary_axis = Vector3r(0, 0, -1);
+            //real_T kx = -10.;
+            //real_T ky = -10.;
+            //real_T kp_gain = -40.;
+            //real_T kq_gain = -40.;
+            //real_T kp_dot_gain = 2.;
+            //real_T kq_dot_gain = 2.;
+            //real_T pq_des_dot_1 = 0.;
+            //real_T pq_des_dot_2 = 0.;
+
             Vector3r primary_axis = Vector3r(0, 0, -1);
-            real_T kx = -5;
-            real_T ky = -5;
-            real_T kp_gain = -20;
-            real_T kq_gain = -20;
-            real_T pq_des_dot_1 = 0;
-            real_T pq_des_dot_2 = 0;
+            real_T kx = -10.;
+            real_T ky = -10.;
+            real_T kp_gain = -70.;
+            real_T kq_gain = -70.;
+            real_T kp_dot_gain = 2.;
+            real_T kq_dot_gain = 2.;
+            real_T pq_des_dot_1 = 0.;
+            real_T pq_des_dot_2 = 0.;
 
             // Variables of the INDI Allocator
             real_T w_max = 1256;
@@ -2337,8 +2413,17 @@ namespace msr {
             Eigen::Matrix<real_T, 4, 1> w_f;
 
             // Variables of the actuator dynamics
-            real_T t_w = 1.0 / 40;
+            real_T t_w = 1.0 / 30.;
 
+            // Variables of the G2 matrix
+            real_T G2_31 = 61.2093;
+            real_T G2_32 = 65.3670;
+            real_T G2_33 = 65.7419;
+            real_T G2_34 = 65.4516;
+
+            // Variables related to the general activation of data gathering
+            bool plot_data_collection_switch = false;
+        
             // Variables related to reference position data gathering
             Vector3r current_pos_ref;
             bool pos_ref_activate_store = false;
@@ -2380,6 +2465,16 @@ namespace msr {
             float acc_ref_sample_rate = 1000;
             uint64_t acc_ref_time_old = 0;
             std::vector<std::vector<float>> acc_ref_data;
+
+            // Variables related to yaw transfer function data gathering
+            float stored_yaw_transfer_fcn_3;
+            float stored_yaw_transfer_fcn_1;
+            float stored_yaw_transfer_fcn_1_1;
+            bool yaw_transfer_fcn_activate_store = false;
+            float yaw_transfer_fcn_sample_rate = 1000;
+            uint64_t yaw_transfer_fcn_time_old = 0;
+            std::vector<std::vector<float>> yaw_transfer_fcn_data;
+
 
             // Variables related to rotational rates data gathering
             Vector3r current_pqr_ref;

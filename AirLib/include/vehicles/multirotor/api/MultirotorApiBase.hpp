@@ -92,6 +92,7 @@ public: //these APIs uses above low level APIs
     virtual bool goHome(float timeout_sec);
     virtual bool dummyprinter(float numerito);
     virtual void setNextPathLocObj(Pose pose);
+    virtual void setPlotDataCollectionActivation(bool activation);
     virtual void setPosRefActivation(bool activation, float sample_rate);
     virtual void cleanPosRefStoredData();
     virtual PosRefStoredData getPosRefStoredDataVec();
@@ -112,6 +113,9 @@ public: //these APIs uses above low level APIs
     virtual AccRefStoredData getAccRefStoredDataVec();
     virtual void setPqrRefActivation(bool activation, float sample_rate);
     virtual void cleanPqrRefStoredData();
+    virtual YawTransferFcnStoredData getYawTransferFcnStoredDataVec();
+    virtual void setYawTransferFcnActivation(bool activation, float sample_rate);
+    virtual void cleanYawTransferFcnStoredData();
     virtual PqrRefStoredData getPqrRefStoredDataVec();
     virtual void setPqrActivation(bool activation, float sample_rate);
     virtual void cleanPqrStoredData();

@@ -35,7 +35,8 @@ protected:
 
         // Only Generic for now
         //setupFrameGenericQuad(params);
-        setupFrameBB2(params);
+        //setupFrameBB2(params);
+        setupFrameBB2Leon(params);
     }
 
     virtual const SensorFactory* getSensorFactory() const override

@@ -285,6 +285,44 @@ protected: //static utility functions for derived classes to use
         //params.inertia(2, 0) = 2.30441852439024e-05;  params.inertia(2, 1) = 0;                   params.inertia(2, 2) = 0.00252027843675714;
     }
 
+    void setupFrameBB2Leon(Params& params)
+    {
+        //set up arm lengths
+        //dimensions are for BB2 frame
+        params.rotor_count = 4;
+        std::vector<real_T> arm_lengths(params.rotor_count, 0.14450346016618426f);
+
+        //set up mass
+        params.mass = 0.511f;
+
+        real_T motor_assembly_weight = 0.005f;  // obtained from the added mass depending on the failure scenario in the initialize.m file
+        real_T box_mass = params.mass - params.rotor_count * motor_assembly_weight;  // mass of the core part of the drone
+        params.rotor_params.max_rpm = 11459.155902616463f;
+        params.rotor_params.propeller_diameter = 0.15f;
+        params.rotor_params.control_signal_filter_tc = 0.025f;
+
+        // using rotor_param default, but if you want to change any of the rotor_params, call calculateMaxThrust() to recompute the max_thrust
+        // given new thrust coefficients, motor max_rpm and propeller diameter.
+        params.rotor_params.calculateMaxThrust();
+
+        //set up dimensions of core body box or abdomen (not including arms).
+        params.body_box.x() = 0.17526f; params.body_box.y() = 0.0508f; params.body_box.z() = 0.089f;
+        real_T rotor_z = 0;
+
+        //computer rotor poses
+        initializeRotorQuadBB2(params.rotor_poses, params.rotor_count, arm_lengths.data(), rotor_z);
+
+        //compute inertia matrix
+        params.inertia = Matrix3x3r::Zero();
+        params.inertia(0, 0) = 0.001926040435298 + 0.1150 * 0.1150 * 0.005 * 4; params.inertia(0, 1) = 0;                                                 params.inertia(0, 2) = 1.925867868808132e-05;
+        params.inertia(1, 0) = 0;                                                 params.inertia(1, 1) = 0.001854031455574 + 0.0875 * 0.0875 * 0.005 * 4; params.inertia(1, 2) = 0;
+        params.inertia(2, 0) = 1.925867868808132e-05;                              params.inertia(2, 1) = 0;                                                 params.inertia(2, 2) = 0.003338820631580 + (0.1150 * 0.1150 + 0.0875 * 0.0875) * 0.005 * 4;
+
+        //params.inertia(0, 0) = 0.00144760672497284;   params.inertia(0, 1) = 0;                   params.inertia(0, 2) = 2.30441852439024e-05;
+        //params.inertia(1, 0) = 0;                     params.inertia(1, 1) = 0.00125537458774899; params.inertia(1, 2) = 0;
+        //params.inertia(2, 0) = 2.30441852439024e-05;  params.inertia(2, 1) = 0;                   params.inertia(2, 2) = 0.00252027843675714;
+    }
+
     void setupFrameGenericQuad(Params& params)
     {
         //set up arm lengths
