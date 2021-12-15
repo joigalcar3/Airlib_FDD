@@ -92,6 +92,12 @@ void MultirotorApiBase::setNextPathLocObj(Pose pose)
     next_path_loc_obj.position.z() = pose.position.z();
 }
 
+// Methods related to the general activation of plot data gathering
+void MultirotorApiBase::setPlotDataCollectionActivation(bool activation)
+{
+    setPlotDataCollectionAct(activation);
+}
+
 // Methods related to the reference position data gathering
 void MultirotorApiBase::setPosRefActivation(bool activation, float sample_rate)
 {
@@ -245,7 +251,8 @@ void MultirotorApiBase::setAccRefActivation(bool activation, float sample_rate)
 
 void MultirotorApiBase::cleanAccRefStoredData()
 {
-    cleanVelRefSD();
+    cleanAccRefSD();
+    //cleanVelRefSD();
 }
 
 AccRefStoredData MultirotorApiBase::getAccRefStoredDataVec()
@@ -263,6 +270,35 @@ AccRefStoredData MultirotorApiBase::getAccRefStoredDataVec()
     }
 
     AccRefStoredData dc = AccRefStoredData(acc_ref_x, acc_ref_y, acc_ref_z);
+    return dc;
+}
+
+// Methods related to the yaw transfer function data gathering
+void MultirotorApiBase::setYawTransferFcnActivation(bool activation, float sample_rate)
+{
+    setYawTransferFcnAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanYawTransferFcnStoredData()
+{
+    cleanYawTransferFcnSD();
+}
+
+YawTransferFcnStoredData MultirotorApiBase::getYawTransferFcnStoredDataVec()
+{
+    std::vector<std::vector<float>> yaw_transfer_fcn_data = getYawTransferFcnStoredData();
+    std::vector<float> yaw_transfer_fcn_3;
+    std::vector<float> yaw_transfer_fcn_1;
+    std::vector<float> yaw_transfer_fcn_1_1;
+
+    for (int i = 0; i < yaw_transfer_fcn_data.size(); i++)
+    {
+        yaw_transfer_fcn_3.push_back(yaw_transfer_fcn_data[i][0]);
+        yaw_transfer_fcn_1.push_back(yaw_transfer_fcn_data[i][1]);
+        yaw_transfer_fcn_1_1.push_back(yaw_transfer_fcn_data[i][2]);
+    }
+
+    YawTransferFcnStoredData dc = YawTransferFcnStoredData(yaw_transfer_fcn_3, yaw_transfer_fcn_1, yaw_transfer_fcn_1_1);
     return dc;
 }
 
@@ -1030,7 +1066,9 @@ bool MultirotorApiBase::moveOnPath(const vector<Vector3r>& path, float velocity,
 
     Vector3r point;
     float path_length = 0;
+
     //append the input path and compute segments
+    // path_segs is a vector of path_segs that contain information about the origin and goal points of the segment, the desired flight velocity and the length of the segment
     for(uint i = 0; i < path.size(); ++i) {
         point = path.at(i);
         PathSegment path_seg(path3d.at(i), point, velocity, path_length);
@@ -1115,13 +1153,18 @@ bool MultirotorApiBase::moveOnPath(const vector<Vector3r>& path, float velocity,
         */
 
         //how much have we moved towards last goal?
+        // Goal vect is the distance between the next point and the previous point before it moved.
         const Vector3r& goal_vect = next_path_loc_obj.position - cur_path_loc_obj.position;
 
         if (!goal_vect.isZero()) { //goal can only be zero if we are at the end of path
+            // actual_vect is the distance between the current location and the previous point before it moved
             const Vector3r& actual_vect = getPosition() - cur_path_loc_obj.position;
 
             //project actual vector on goal vector
+            // goal normalized is the direction that the drone had to be followed from the previous point before it moved
             const Vector3r& goal_normalized = goal_vect.normalized();    
+
+            // goal_dist is the distance that the drone has flown in the direction determined by the next point and the previous point before it moved
             goal_dist = actual_vect.dot(goal_normalized); //dist could be -ve if drone moves away from goal
 
             //if adaptive lookahead is enabled the calculate lookahead error (see above fig)
@@ -1156,6 +1199,7 @@ bool MultirotorApiBase::moveOnPath(const vector<Vector3r>& path, float velocity,
         //if drone moved backward, we don't want goal to move backward as well
         //so only climb forward on the path, never back. Also note >= which means
         //we climb path even if distance was 0 to take care of duplicated points on path
+        // This is done to update the current position of the object
         if (goal_dist >= 0) {
             overshoot = setNextPathPosition(path3d, path_segs, cur_path_loc_obj, goal_dist, cur_path_loc_obj);
             if (overshoot)

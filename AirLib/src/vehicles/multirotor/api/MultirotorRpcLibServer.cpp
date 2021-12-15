@@ -59,6 +59,12 @@ MultirotorRpcLibServer::MultirotorRpcLibServer(ApiProvider* api_provider, string
         return bool(getVehicleApi(vehicle_name)->dummyprinter(numerito));
             });
 
+    // Methods related to the general gathering of plot data
+    (static_cast<rpc::server*>(getServer()))->
+        bind("setPlotDataCollectionActivation", [&](bool activation, const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->setPlotDataCollectionActivation(activation);
+            });
+
     // Methods related to the reference position data gathering
     (static_cast<rpc::server*>(getServer()))->
         bind("setPosRefActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
@@ -153,6 +159,22 @@ MultirotorRpcLibServer::MultirotorRpcLibServer(ApiProvider* api_provider, string
     (static_cast<rpc::server*>(getServer()))->
         bind("getAccRefStoredDataVec", [&](const std::string& vehicle_name) -> MultirotorRpcLibAdaptors::AccRefStoredData {
         return MultirotorRpcLibAdaptors::AccRefStoredData(getVehicleApi(vehicle_name)->getAccRefStoredDataVec());
+            });
+
+    // Methods related to the yaw transfer function data gathering
+    (static_cast<rpc::server*>(getServer()))->
+        bind("setYawTransferFcnActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->setYawTransferFcnActivation(activation, sample_rate);
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("cleanYawTransferFcnStoredData", [&](const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->cleanYawTransferFcnStoredData();
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("getYawTransferFcnStoredDataVec", [&](const std::string& vehicle_name) -> MultirotorRpcLibAdaptors::YawTransferFcnStoredData {
+        return MultirotorRpcLibAdaptors::YawTransferFcnStoredData(getVehicleApi(vehicle_name)->getYawTransferFcnStoredDataVec());
             });
 
     // Methods related to the reference rotational rates data gathering

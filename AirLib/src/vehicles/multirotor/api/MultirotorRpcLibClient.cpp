@@ -80,6 +80,12 @@ bool MultirotorRpcLibClient::dummyprinter(float numerito, const std::string& veh
     return static_cast<rpc::client*>(getClient())->call("dummyprinter", numerito, vehicle_name).as<bool>();
 }
 
+// Methods related to the activation of the collection of general plotting data
+void MultirotorRpcLibClient::setPlotDataCollectionActivation(bool activation, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setPlotDataCollectionActivation", activation, vehicle_name);
+}
+
 // Methods related to the reference position data gathering
 void MultirotorRpcLibClient::setPosRefActivation(bool activation, float sample_rate, const std::string& vehicle_name)
 {
@@ -174,6 +180,22 @@ void MultirotorRpcLibClient::cleanAccRefStoredData(const std::string& vehicle_na
 AccRefStoredData MultirotorRpcLibClient::getAccRefStoredDataVec(const std::string& vehicle_name)
 {
     return static_cast<rpc::client*>(getClient())->call("getAccRefStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::AccRefStoredData>().to();
+}
+
+// Methods related to the yaw transfer function data gathering
+void MultirotorRpcLibClient::setYawTransferFcnActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setYawTransferFcnActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanYawTransferFcnStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanYawTransferFcnStoredData", vehicle_name);
+}
+
+YawTransferFcnStoredData MultirotorRpcLibClient::getYawTransferFcnStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getYawTransferFcnStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::YawTransferFcnStoredData>().to();
 }
 
 // Methods related to the reference rotational rates data gathering
