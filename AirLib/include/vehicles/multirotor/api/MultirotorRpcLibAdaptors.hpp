@@ -535,6 +535,126 @@ public:
         }
     };
 
+    struct DamagedMassForcesStoredData {
+        std::vector<float> damaged_mass_forces_x;
+        std::vector<float> damaged_mass_forces_y;
+        std::vector<float> damaged_mass_forces_z;
+
+        MSGPACK_DEFINE_MAP(damaged_mass_forces_x, damaged_mass_forces_y, damaged_mass_forces_z);
+
+        DamagedMassForcesStoredData()
+        {}
+
+        DamagedMassForcesStoredData(msr::airlib::DamagedMassForcesStoredData original)
+        {
+            damaged_mass_forces_x = original.damaged_mass_forces_x;
+            damaged_mass_forces_y = original.damaged_mass_forces_y;
+            damaged_mass_forces_z = original.damaged_mass_forces_z;
+        }
+
+        msr::airlib::DamagedMassForcesStoredData to() const
+        {
+            msr::airlib::DamagedMassForcesStoredData d(damaged_mass_forces_x, damaged_mass_forces_y, damaged_mass_forces_z);
+            return d;
+        }
+    };
+
+    struct DamagedMassMomentsStoredData {
+        std::vector<float> damaged_mass_moments_x;
+        std::vector<float> damaged_mass_moments_y;
+        std::vector<float> damaged_mass_moments_z;
+
+        MSGPACK_DEFINE_MAP(damaged_mass_moments_x, damaged_mass_moments_y, damaged_mass_moments_z);
+
+        DamagedMassMomentsStoredData()
+        {}
+
+        DamagedMassMomentsStoredData(msr::airlib::DamagedMassMomentsStoredData original)
+        {
+            damaged_mass_moments_x = original.damaged_mass_moments_x;
+            damaged_mass_moments_y = original.damaged_mass_moments_y;
+            damaged_mass_moments_z = original.damaged_mass_moments_z;
+        }
+
+        msr::airlib::DamagedMassMomentsStoredData to() const
+        {
+            msr::airlib::DamagedMassMomentsStoredData d(damaged_mass_moments_x, damaged_mass_moments_y, damaged_mass_moments_z);
+            return d;
+        }
+    };
+
+    struct DamagedAeroForcesStoredData {
+        std::vector<float> damaged_aero_forces_x;
+        std::vector<float> damaged_aero_forces_y;
+        std::vector<float> damaged_aero_forces_z;
+
+        MSGPACK_DEFINE_MAP(damaged_aero_forces_x, damaged_aero_forces_y, damaged_aero_forces_z);
+
+        DamagedAeroForcesStoredData()
+        {}
+
+        DamagedAeroForcesStoredData(msr::airlib::DamagedAeroForcesStoredData original)
+        {
+            damaged_aero_forces_x = original.damaged_aero_forces_x;
+            damaged_aero_forces_y = original.damaged_aero_forces_y;
+            damaged_aero_forces_z = original.damaged_aero_forces_z;
+        }
+
+        msr::airlib::DamagedAeroForcesStoredData to() const
+        {
+            msr::airlib::DamagedAeroForcesStoredData d(damaged_aero_forces_x, damaged_aero_forces_y, damaged_aero_forces_z);
+            return d;
+        }
+    };
+
+    struct DamagedAeroMomentsStoredData {
+        std::vector<float> damaged_aero_moments_x;
+        std::vector<float> damaged_aero_moments_y;
+        std::vector<float> damaged_aero_moments_z;
+
+        MSGPACK_DEFINE_MAP(damaged_aero_moments_x, damaged_aero_moments_y, damaged_aero_moments_z);
+
+        DamagedAeroMomentsStoredData()
+        {}
+
+        DamagedAeroMomentsStoredData(msr::airlib::DamagedAeroMomentsStoredData original)
+        {
+            damaged_aero_moments_x = original.damaged_aero_moments_x;
+            damaged_aero_moments_y = original.damaged_aero_moments_y;
+            damaged_aero_moments_z = original.damaged_aero_moments_z;
+        }
+
+        msr::airlib::DamagedAeroMomentsStoredData to() const
+        {
+            msr::airlib::DamagedAeroMomentsStoredData d(damaged_aero_moments_x, damaged_aero_moments_y, damaged_aero_moments_z);
+            return d;
+        }
+    };
+
+    struct TimeInfoStoredData {
+        std::vector<float> time;
+        std::vector<float> dt_real;
+        std::vector<float> sampling_frequency;
+
+        MSGPACK_DEFINE_MAP(time, dt_real, sampling_frequency);
+
+        TimeInfoStoredData()
+        {}
+
+        TimeInfoStoredData(msr::airlib::TimeInfoStoredData original)
+        {
+            time = original.time;
+            dt_real = original.dt_real;
+            sampling_frequency = original.sampling_frequency;
+        }
+
+        msr::airlib::TimeInfoStoredData to() const
+        {
+            msr::airlib::TimeInfoStoredData d(time, dt_real, sampling_frequency);
+            return d;
+        }
+    };
+
     struct IMUStoredData {
         std::vector<uint64_t> timestamps;
         std::vector<float> orientations_w;

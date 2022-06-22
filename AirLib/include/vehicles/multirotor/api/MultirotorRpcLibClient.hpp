@@ -27,6 +27,9 @@ public:
     // Methods related to the general gathering of plotting data
     void setPlotDataCollectionActivation(bool activation, const std::string& vehicle_name = "");
 
+    // General methods for data collection
+    void setActivation(bool activation, float sample_rate, std::string data_name, const std::string& vehicle_name = "");
+
     // Methods related to the reference position data gathering
     void setPosRefActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
     void cleanPosRefStoredData(const std::string& vehicle_name = "");
@@ -102,6 +105,31 @@ public:
     void cleanThrustPiStoredData(const std::string& vehicle_name = "");
     ThrustPiStoredData getThrustPiStoredDataVec(const std::string& vehicle_name = "");
 
+    // Methods related to the damaged mass force due to blade damage data gathering
+    void setDamagedMassForcesActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanDamagedMassForcesStoredData(const std::string& vehicle_name = "");
+    DamagedMassForcesStoredData getDamagedMassForcesStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the damaged mass force due to blade damage data gathering
+    void setDamagedMassMomentsActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanDamagedMassMomentsStoredData(const std::string& vehicle_name = "");
+    DamagedMassMomentsStoredData getDamagedMassMomentsStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the damaged aero force due to blade damage data gathering
+    void setDamagedAeroForcesActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanDamagedAeroForcesStoredData(const std::string& vehicle_name = "");
+    DamagedAeroForcesStoredData getDamagedAeroForcesStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the damaged aero force due to blade damage data gathering
+    void setDamagedAeroMomentsActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanDamagedAeroMomentsStoredData(const std::string& vehicle_name = "");
+    DamagedAeroMomentsStoredData getDamagedAeroMomentsStoredDataVec(const std::string& vehicle_name = "");
+
+    // Methods related to the time data gathering
+    void setTimeInfoActivation(bool activation, float sample_rate, const std::string& vehicle_name = "");
+    void cleanTimeInfoStoredData(const std::string& vehicle_name = "");
+    TimeInfoStoredData getTimeInfoStoredDataVec(const std::string& vehicle_name = "");
+
     // Methods related to the Camera data gathering
     void setCameraActivation(bool activation, float sample_rate, vector<ImageCaptureBase::ImageRequest> request, const std::string& vehicle_name = "");
     void cleanCameraStoredData(const std::string& vehicle_name = "");
@@ -141,6 +169,9 @@ public:
     void setTeleportYawRef(float yaw_angle_ref, const std::string& vehicle_name = "");
 
     // Methods related to drone failures
+    void setDamageCoefficientAdvanced(int propeller, int blade, float damage_coefficient, float start_angle, const std::string& vehicle_name = "");
+    void resetDamageCoefficientAdvanced(const std::string& vehicle_name = "");
+    void setSwitchActivateBladeDamageAdvanced(bool switch_activate_blade_damage_advanced, const std::string& vehicle_name = "");
     void setDamageCoefficients(float new_coeff_1, float new_coeff_2, float new_coeff_3, float new_coeff_4, const std::string& vehicle_name = "");
     void setLockedProppellers(bool locked_1, bool locked_2, bool locked_3, bool locked_4, const std::string& vehicle_name = "");
     void setLockedPropellerCoefficients(float new_coeff_1, float new_coeff_2, float new_coeff_3, float new_coeff_4, const std::string& vehicle_name = "");

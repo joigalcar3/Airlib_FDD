@@ -398,6 +398,86 @@ struct ThrustPiStoredData
     }
 };
 
+struct DamagedMassForcesStoredData
+{
+    std::vector<float> damaged_mass_forces_x;
+    std::vector<float> damaged_mass_forces_y;
+    std::vector<float> damaged_mass_forces_z;
+    DamagedMassForcesStoredData()
+    {}
+
+    DamagedMassForcesStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        damaged_mass_forces_x = p1;
+        damaged_mass_forces_y = p2;
+        damaged_mass_forces_z = p3;
+    }
+};
+
+struct DamagedMassMomentsStoredData
+{
+    std::vector<float> damaged_mass_moments_x;
+    std::vector<float> damaged_mass_moments_y;
+    std::vector<float> damaged_mass_moments_z;
+    DamagedMassMomentsStoredData()
+    {}
+
+    DamagedMassMomentsStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        damaged_mass_moments_x = p1;
+        damaged_mass_moments_y = p2;
+        damaged_mass_moments_z = p3;
+    }
+};
+
+struct DamagedAeroForcesStoredData
+{
+    std::vector<float> damaged_aero_forces_x;
+    std::vector<float> damaged_aero_forces_y;
+    std::vector<float> damaged_aero_forces_z;
+    DamagedAeroForcesStoredData()
+    {}
+
+    DamagedAeroForcesStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        damaged_aero_forces_x = p1;
+        damaged_aero_forces_y = p2;
+        damaged_aero_forces_z = p3;
+    }
+};
+
+struct DamagedAeroMomentsStoredData
+{
+    std::vector<float> damaged_aero_moments_x;
+    std::vector<float> damaged_aero_moments_y;
+    std::vector<float> damaged_aero_moments_z;
+    DamagedAeroMomentsStoredData()
+    {}
+
+    DamagedAeroMomentsStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        damaged_aero_moments_x = p1;
+        damaged_aero_moments_y = p2;
+        damaged_aero_moments_z = p3;
+    }
+};
+
+struct TimeInfoStoredData
+{
+    std::vector<float> time;
+    std::vector<float> dt_real;
+    std::vector<float> sampling_frequency;
+    TimeInfoStoredData()
+    {}
+
+    TimeInfoStoredData(const std::vector<float>& p1, const std::vector<float>& p2, const std::vector<float>& p3)
+    {
+        time = p1;
+        dt_real = p2;
+        sampling_frequency = p3;
+    }
+};
+
 struct IMUStoredData
 {
     std::vector<uint64_t> timestamps;

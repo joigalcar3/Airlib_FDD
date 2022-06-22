@@ -93,6 +93,8 @@ public: //these APIs uses above low level APIs
     virtual bool dummyprinter(float numerito);
     virtual void setNextPathLocObj(Pose pose);
     virtual void setPlotDataCollectionActivation(bool activation);
+    virtual void setActivation(bool activation, float sample_rate, std::string data_name);
+
     virtual void setPosRefActivation(bool activation, float sample_rate);
     virtual void cleanPosRefStoredData();
     virtual PosRefStoredData getPosRefStoredDataVec();
@@ -138,6 +140,21 @@ public: //these APIs uses above low level APIs
     virtual void setThrustPiActivation(bool activation, float sample_rate);
     virtual void cleanThrustPiStoredData();
     virtual ThrustPiStoredData getThrustPiStoredDataVec();
+    virtual void setDamagedMassForcesActivation(bool activation, float sample_rate);
+    virtual void cleanDamagedMassForcesStoredData();
+    virtual DamagedMassForcesStoredData getDamagedMassForcesStoredDataVec();
+    virtual void setDamagedMassMomentsActivation(bool activation, float sample_rate);
+    virtual void cleanDamagedMassMomentsStoredData();
+    virtual DamagedMassMomentsStoredData getDamagedMassMomentsStoredDataVec();
+    virtual void setDamagedAeroForcesActivation(bool activation, float sample_rate);
+    virtual void cleanDamagedAeroForcesStoredData();
+    virtual DamagedAeroForcesStoredData getDamagedAeroForcesStoredDataVec();
+    virtual void setDamagedAeroMomentsActivation(bool activation, float sample_rate);
+    virtual void cleanDamagedAeroMomentsStoredData();
+    virtual DamagedAeroMomentsStoredData getDamagedAeroMomentsStoredDataVec();
+    virtual void setTimeInfoActivation(bool activation, float sample_rate);
+    virtual void cleanTimeInfoStoredData();
+    virtual TimeInfoStoredData getTimeInfoStoredDataVec();
     virtual void setCameraActivation(bool activation, float sample_rate, const std::vector<ImageCaptureBase::ImageRequest>& request, VehicleSimApiBase* const &api);
     virtual void cleanCameraStoredData();
     virtual void saveCameraStoredData(std::string path);
@@ -160,6 +177,11 @@ public: //these APIs uses above low level APIs
     virtual void cleanGPSStoredData();
     virtual GPSStoredData getGPSStoredDataVec();
     virtual void setTeleportYawRef(float yaw_angle_ref);
+
+    //Methods related to the drone failures
+    virtual void setDamageCoefficientAdvanced(int propeller, int blade, float damage_coefficient, float start_angle);
+    virtual void resetDamageCoefficientAdvanced();
+    virtual void setSwitchActivateBladeDamageAdvanced(bool switch_activate_blade_damage_advanced);
     virtual void setDamageCoefficients(float new_coeff_1, float new_coeff_2, float new_coeff_3, float new_coeff_4);
     virtual void setLockedProppellers(bool locked_1, bool locked_2, bool locked_3, bool locked_4);
     virtual void setLockedPropellerCoefficients(float new_coeff_1, float new_coeff_2, float new_coeff_3, float new_coeff_4);
@@ -289,6 +311,16 @@ protected: //utility methods
     virtual void setYawRef(real_T yaw_angle_ref)
     {
         yaw_ref_deg = yaw_angle_ref;
+    }
+
+    virtual real_T getLookahead() const
+    {
+        return lookahead_var;
+    }
+
+    virtual real_T getAdaptiveLookahead() const
+    {
+        return adaptive_lookahead_var;
     }
 
     CancelToken& getCancelToken()
@@ -451,6 +483,7 @@ private: //variables
 
     PathPosition cur_path_loc_obj, next_path_loc_obj;
     real_T yaw_ref_deg = 0;
+    real_T adaptive_lookahead_var, lookahead_var;
 
 };
 

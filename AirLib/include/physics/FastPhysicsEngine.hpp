@@ -6,6 +6,7 @@
 
 #include "common/FirstOrderFilter.hpp"
 #include <numeric>
+#include "DamagedPropeller.hpp"
 
 #include "common/Common.hpp"
 #include "physics/PhysicsEngineBase.hpp"
@@ -20,6 +21,10 @@
 #include <cfloat>
 #include <math.h>
 
+// TODO: write the code for restarting the scenario
+// TODO: write the code to compute the scenario pre-failure setup
+// TODO: write the code to start the failure
+
 namespace msr {
     namespace airlib {
 
@@ -28,6 +33,34 @@ namespace msr {
             FastPhysicsEngine(bool enable_ground_lock = true, Vector3r wind = Vector3r::Zero())
                 : enable_ground_lock_(enable_ground_lock), wind_(wind)
             {
+                real_T propeller_mass_g = 5.07f;                 // [g] measured 5.07
+                real_T propeller_mass = propeller_mass_g / 1000.0f;  // [kg]
+                real_T blade_mass_g = 1.11f;                     // [g] measured 1.11.Mass of a single blade
+                int n_blades = 3.0f;                            // [-] measured 3
+                real_T percentage_hub_m = (propeller_mass_g - blade_mass_g * n_blades) / propeller_mass_g * 100.0f;
+                real_T tip_chord = 0.008f;                 // [m] measured 0.008
+                real_T largest_chord_length = 0.02f;       // [m] measured 0.02
+                real_T second_segment_length = 0.032f;     // [m] measured 0.032
+                real_T base_chord = 0.013f;                // [m] measured 0.013
+                real_T length_blade_origin = 0.075f;       // [m] measured 0.076
+                real_T radius_hub = 0.011f;                // [m] measured 0.012
+                real_T start_twist = 27.0f;                  // [deg] measured 26.39[deg]
+                real_T finish_twist = 5.0f;
+                vector<real_T> chord_lengths_rt_lst { base_chord, largest_chord_length, tip_chord };
+                real_T first_segment_length = length_blade_origin - radius_hub - second_segment_length;
+                vector<real_T> length_trapezoids_rt_lst{ first_segment_length, second_segment_length };
+
+                // User input
+                vector<real_T> percentage_broken_blade_length{ 0, 0, 0 };   // [%]
+                real_T angle_first_blade = 0;                 // [deg] angle of the first blade with respect to the propeller coord.frame
+
+                for (int propeller_number = 0; propeller_number < 4; propeller_number++)
+                {
+                    DamagedPropeller propeller = DamagedPropeller(propeller_number, n_blades, chord_lengths_rt_lst, length_trapezoids_rt_lst, radius_hub, propeller_mass, percentage_hub_m,
+                        angle_first_blade, start_twist, finish_twist, percentage_broken_blade_length);
+                    damaged_propellers_.push_back(propeller);
+                }
+
             }
 
             //*** Start: UpdatableState implementation ***//
@@ -414,8 +447,8 @@ namespace msr {
             static float interp2(std::vector<float>& x, std::vector<float>& y, Eigen::Matrix<real_T, 15, 15> V, float x_new, float y_new)
             {
                 // todo: what happens when the point to compute lays outside of the boundaries
-                float x_length = x.size();
-                float y_length = y.size();
+                int x_length = x.size();
+                int y_length = y.size();
                 float dx_x1, dV_x1, slope_x1, dV_x2, slope_x2;
                 float dx, dV, slope, col_1, col_2, interpolated;
                 //float dx_y1, dV_y1, slope_y1, intercept_y1, dV_y2, slope_y2, intercept_y2;
@@ -612,7 +645,7 @@ namespace msr {
             real_T gaussian_noise(real_T clean_number, real_T mean, real_T variance)
             {
                 real_T standard_deviation = sqrt(variance);
-                std::normal_distribution<double> distribution(mean, standard_deviation);
+                std::normal_distribution<float> distribution(mean, standard_deviation);
                 real_T dirty_number = clean_number + distribution(generator);
                 return dirty_number;
             }
@@ -656,6 +689,7 @@ namespace msr {
                 Kinematics::State& next, Wrench& next_wrench, const Vector3r& wind, float prop_damage[])
             {
                 const real_T dt_real = static_cast<real_T>(dt);
+                const real_T current_time = static_cast<real_T>(clock()->nowNanos() / 1e9);
                 Vector3r avg_linear;
                 Vector3r avg_angular;
                 if (use_average_values)
@@ -670,7 +704,7 @@ namespace msr {
                 }
                 
 
-                std::vector<real_T> PWMs = body.getPWMrotors_INDI(previous);
+                std::vector<real_T> PWMs = body.getPWMrotors_INDI(previous, dt_real, current_time);
 
                 real_T omega1 = PWMs[0];
                 if (omega1 <= 1) { omega1 = 0.0f; }
@@ -709,7 +743,7 @@ namespace msr {
                 real_T alpha;
                 if (Va >= 0.01)
                 {
-                    alpha = asin(w / Va) * rad2deg_factor;
+                    alpha = asin(std::max(std::min(w / Va, 1.0f), -1.0f)) * rad2deg_factor;
                 }
                 else
                 {
@@ -718,7 +752,7 @@ namespace msr {
 
                 // Normal force from the static wind tunnel test
                 static std::vector<real_T> AoA_airframe{ 90.0f, 75.0f, 60.0f, 45.0f, 30.0f, 15.0f, 0.0f, -15.0f, -30.0f, -45.0f, -75.0f, -90.0f };
-                static std::vector<real_T> Cz_airframe{ -0.0115, -0.0124, -0.0137, -0.0128, -0.0100, -0.0063, 0.0014, 0.0045, 0.007, 0.0094, 0.0119, 0.0120 };
+                static std::vector<real_T> Cz_airframe{ -0.0115f, -0.0124f, -0.0137f, -0.0128f, -0.0100f, -0.0063f, 0.0014f, 0.0045f, 0.007f, 0.0094f, 0.0119f, 0.0120f };
                 if (AoA_airframe[0] > AoA_airframe[1])
                 {
                     std::reverse(AoA_airframe.begin(), AoA_airframe.end());
@@ -748,7 +782,7 @@ namespace msr {
                 }
                 std::vector<real_T> AT0 = P33(u_constraint, abs(v_constraint), w_constraint);
                 std::vector<real_T> k_model_1{ -0.0463911782738117, 0.126912947052739, 0.324191845756361, -0.0557628235059462, 0.00571250782560552, -0.103210100621382, -0.0146821184410235, 0.0199520548034235, -0.138168259069616, 0.0273216857565274, -0.00105647803825825, 0.00634522471334950, 0.00166114145301890, -0.00689017065134193, -0.00104094928681998, -0.00176014569852436, 0.00304889473917665, 0.00866535042034273, -0.00554316427701624, -0.0137422347201967 };
-                real_T T_corr = std::inner_product(AT0.begin(), AT0.end(), k_model_1.begin(), 0.0);
+                real_T T_corr = std::inner_product(AT0.begin(), AT0.end(), k_model_1.begin(), 0.0f);
 
                 // Calculate Ctand Cq of each rotor
                 std::vector<int> SL{ 1, -1, -1, 1 };
@@ -781,19 +815,19 @@ namespace msr {
                 // Computation of the advance ratio
                 real_T vv1 = va1 / (omega1 * R);
                 if (isnan(vv1) || isinf(abs(vv1))) { vv1 = 0.0f; }
-                if (vv1 >= 0.6) { vv1 = 0.6; }
+                if (vv1 >= 0.6f) { vv1 = 0.6f; }
 
                 real_T vv2 = va2 / (omega2 * R);
                 if (isnan(vv2) || isinf(abs(vv2))) { vv2 = 0.0f; }
-                if (vv2 >= 0.6) { vv2 = 0.6; }
+                if (vv2 >= 0.6f) { vv2 = 0.6f; }
 
                 real_T vv3 = va3 / (omega3 * R);
                 if (isnan(vv3) || isinf(abs(vv3))) { vv3 = 0.0f; }
-                if (vv3 >= 0.6) { vv3 = 0.6; }
+                if (vv3 >= 0.6f) { vv3 = 0.6f; }
 
                 real_T vv4 = va4 / (omega4 * R);
                 if (isnan(vv4) || isinf(abs(vv4))) { vv4 = 0.0f; }
-                if (vv4 >= 0.6) { vv4 = 0.6; }
+                if (vv4 >= 0.6f) { vv4 = 0.6f; }
 
                 // Computation of the angle of attack of each propeller
                 real_T alpha1 = atan(w1 / sqrt(u1 * u1 + v1 * v1)) * rad2deg_factor;
@@ -827,24 +861,24 @@ namespace msr {
                 std::vector<real_T> k_Ct0{ 0.0152457017219075, -3.19835880466424e-05, -0.0474659629880834, -5.48089604291955e-08, -0.000164550969624146, 0.650877249185920, 1.10477778832442e-08, -9.76752919452344e-06, 0.00859691522825337, -2.20418122442645, 3.27434126987218e-11, -5.69117054658112e-08, 2.32561854294217e-05, -0.0116550184566165, 3.04959484433102, -6.00795185558617e-13, 1.81690349314076e-10, -4.63671043348055e-08, -1.52454780569063e-05, 0.00607313609112646, -1.51563942225535 };
 
                 std::vector<real_T> Ct01_P52 = P52(alpha1, vv1);
-                real_T Ct01 = std::inner_product(Ct01_P52.begin(), Ct01_P52.end(), k_Ct0.begin(), 0.0);
+                real_T Ct01 = std::inner_product(Ct01_P52.begin(), Ct01_P52.end(), k_Ct0.begin(), 0.0f);
 
                 std::vector<real_T> Ct02_P52 = P52(alpha2, vv2);
-                real_T Ct02 = std::inner_product(Ct02_P52.begin(), Ct02_P52.end(), k_Ct0.begin(), 0.0);
+                real_T Ct02 = std::inner_product(Ct02_P52.begin(), Ct02_P52.end(), k_Ct0.begin(), 0.0f);
 
                 std::vector<real_T> Ct03_P52 = P52(alpha3, vv3);
-                real_T Ct03 = std::inner_product(Ct03_P52.begin(), Ct03_P52.end(), k_Ct0.begin(), 0.0);
+                real_T Ct03 = std::inner_product(Ct03_P52.begin(), Ct03_P52.end(), k_Ct0.begin(), 0.0f);
 
                 std::vector<real_T> Ct04_P52 = P52(alpha4, vv4);
-                real_T Ct04 = std::inner_product(Ct04_P52.begin(), Ct04_P52.end(), k_Ct0.begin(), 0.0);
+                real_T Ct04 = std::inner_product(Ct04_P52.begin(), Ct04_P52.end(), k_Ct0.begin(), 0.0f);
 
                 // Cq is used for the drag torque of the rotor
                 std::vector<real_T> k_Cq0{ -0.000166978387654207, -9.26661647846620e-07, -0.000161106517356852, 1.49219451037256e-09, -2.80468068962665e-06, 0.000591396065463947, 4.46363200546300e-10, 8.90349145739088e-08, -1.53880349952214e-05, -0.00773976740405967, -3.70391296926118e-13, 3.92836511888492e-10, -1.33297247718639e-08, -0.000133549679393062, 0.0164947421115812, -4.17586454158575e-14, -3.24864794974322e-12, 1.14205811263298e-09, -6.42233810561959e-08, 0.000149532607712236, -0.0106110955476936 };
 
-                real_T Cq01 = std::inner_product(Ct01_P52.begin(), Ct01_P52.end(), k_Cq0.begin(), 0.0);
-                real_T Cq02 = std::inner_product(Ct02_P52.begin(), Ct02_P52.end(), k_Cq0.begin(), 0.0);
-                real_T Cq03 = std::inner_product(Ct03_P52.begin(), Ct03_P52.end(), k_Cq0.begin(), 0.0);
-                real_T Cq04 = std::inner_product(Ct04_P52.begin(), Ct04_P52.end(), k_Cq0.begin(), 0.0);
+                real_T Cq01 = std::inner_product(Ct01_P52.begin(), Ct01_P52.end(), k_Cq0.begin(), 0.0f);
+                real_T Cq02 = std::inner_product(Ct02_P52.begin(), Ct02_P52.end(), k_Cq0.begin(), 0.0f);
+                real_T Cq03 = std::inner_product(Ct03_P52.begin(), Ct03_P52.end(), k_Cq0.begin(), 0.0f);
+                real_T Cq04 = std::inner_product(Ct04_P52.begin(), Ct04_P52.end(), k_Cq0.begin(), 0.0f);
 
                 // Similar to the angle of attack equation-- > horizontal advance ratio.The
                 // explanation of this quantity is found in the paper "Aerodynamic Model 
@@ -910,35 +944,35 @@ namespace msr {
                     std::vector<real_T> Fn3 = Fn(psi_h3, h, 0.0f, 1.0f, mu3, lc3);
                     std::vector<real_T> Fn4 = Fn(psi_h4, h, 0.0f, 1.0f, mu4, lc4);
 
-                    dCt_1 = std::inner_product(Fn1.begin(), Fn1.end(), k_model_2.begin(), 0.0);
-                    dCt_2 = std::inner_product(Fn2.begin(), Fn2.end(), k_model_2.begin(), 0.0);
-                    dCt_3 = std::inner_product(Fn3.begin(), Fn3.end(), k_model_2.begin(), 0.0);
-                    dCt_4 = std::inner_product(Fn4.begin(), Fn4.end(), k_model_2.begin(), 0.0);
+                    dCt_1 = std::inner_product(Fn1.begin(), Fn1.end(), k_model_2.begin(), 0.0f);
+                    dCt_2 = std::inner_product(Fn2.begin(), Fn2.end(), k_model_2.begin(), 0.0f);
+                    dCt_3 = std::inner_product(Fn3.begin(), Fn3.end(), k_model_2.begin(), 0.0f);
+                    dCt_4 = std::inner_product(Fn4.begin(), Fn4.end(), k_model_2.begin(), 0.0f);
 
-                    dCq_1 = std::inner_product(Fn1.begin(), Fn1.end(), k_model_11.begin(), 0.0);
-                    dCq_2 = std::inner_product(Fn2.begin(), Fn2.end(), k_model_11.begin(), 0.0);
-                    dCq_3 = std::inner_product(Fn3.begin(), Fn3.end(), k_model_11.begin(), 0.0);
-                    dCq_4 = std::inner_product(Fn4.begin(), Fn4.end(), k_model_11.begin(), 0.0);
+                    dCq_1 = std::inner_product(Fn1.begin(), Fn1.end(), k_model_11.begin(), 0.0f);
+                    dCq_2 = std::inner_product(Fn2.begin(), Fn2.end(), k_model_11.begin(), 0.0f);
+                    dCq_3 = std::inner_product(Fn3.begin(), Fn3.end(), k_model_11.begin(), 0.0f);
+                    dCq_4 = std::inner_product(Fn4.begin(), Fn4.end(), k_model_11.begin(), 0.0f);
                 }
 
                 // saturate dCt and dCq for extrapolation
-                if (dCt_1 > 0.007) { dCt_1 = 0.007; }
-                else if (dCt_1 < -0.007) { dCt_1 = -0.007; }
-                if (dCt_2 > 0.007) { dCt_2 = 0.007; }
-                else if (dCt_2 < -0.007) { dCt_2 = -0.007; }
-                if (dCt_3 > 0.007) { dCt_3 = 0.007; }
-                else if (dCt_3 < -0.007) { dCt_3 = -0.007; }
-                if (dCt_4 > 0.007) { dCt_4 = 0.007; }
-                else if (dCt_4 < -0.007) { dCt_4 = -0.007; }
+                if (dCt_1 > 0.007f) { dCt_1 = 0.007f; }
+                else if (dCt_1 < -0.007f) { dCt_1 = -0.007f; }
+                if (dCt_2 > 0.007f) { dCt_2 = 0.007f; }
+                else if (dCt_2 < -0.007f) { dCt_2 = -0.007f; }
+                if (dCt_3 > 0.007f) { dCt_3 = 0.007f; }
+                else if (dCt_3 < -0.007f) { dCt_3 = -0.007f; }
+                if (dCt_4 > 0.007f) { dCt_4 = 0.007f; }
+                else if (dCt_4 < -0.007f) { dCt_4 = -0.007f; }
 
-                if (dCq_1 > 0.0001) { dCq_1 = 0.0001; }
-                else if (dCq_1 < -0.0007) { dCq_1 = -0.0007; }
-                if (dCq_2 > 0.0001) { dCq_2 = 0.0001; }
-                else if (dCq_2 < -0.0007) { dCq_2 = -0.0007; }
-                if (dCq_3 > 0.0001) { dCq_3 = 0.0001; }
-                else if (dCq_3 < -0.0007) { dCq_3 = -0.0007; }
-                if (dCq_4 > 0.0001) { dCq_4 = 0.0001; }
-                else if (dCq_4 < -0.0007) { dCq_4 = -0.0007; }
+                if (dCq_1 > 0.0001f) { dCq_1 = 0.0001f; }
+                else if (dCq_1 < -0.0007f) { dCq_1 = -0.0007f; }
+                if (dCq_2 > 0.0001f) { dCq_2 = 0.0001f; }
+                else if (dCq_2 < -0.0007f) { dCq_2 = -0.0007f; }
+                if (dCq_3 > 0.0001f) { dCq_3 = 0.0001f; }
+                else if (dCq_3 < -0.0007f) { dCq_3 = -0.0007f; }
+                if (dCq_4 > 0.0001f) { dCq_4 = 0.0001f; }
+                else if (dCq_4 < -0.0007f) { dCq_4 = -0.0007f; }
 
                 // interaction effect is negligible when V < 2m / s;
                 real_T vh = sqrt(u * u + v * v);
@@ -967,8 +1001,8 @@ namespace msr {
                 // Computation of the forces in the x - direction.It is explained in Equation
                 // 23 of the paper "Aerodynamic Model Identification of a Quadrotor 
                 // Subjected to Rotor Failures in the High - Speed Flight Regime"
-                real_T k_model_3 = -4.18219980688138e-05;
-                real_T k_model_4 = 2.75369651421482e-05;
+                real_T k_model_3 = -4.18219980688138e-05f;
+                real_T k_model_4 = 2.75369651421482e-05f;
                 real_T X1 = u1 * omega1 * k_model_3 + SN[0] * v1 * omega1 * k_model_4;
                 real_T X2 = u2 * omega2 * k_model_3 + SN[1] * v2 * omega2 * k_model_4;
                 real_T X3 = u3 * omega3 * k_model_3 + SN[2] * v3 * omega3 * k_model_4;
@@ -977,8 +1011,8 @@ namespace msr {
                 // Computation of the forces in the y - direction.It is explained in Equation
                 // 23 of the paper "Aerodynamic Model Identification of a Quadrotor 
                 // Subjected to Rotor Failures in the High - Speed Flight Regime"
-                real_T k_model_5 = -5.43414653058895e-05;
-                real_T k_model_6 = -1.34375303328745e-05;
+                real_T k_model_5 = -5.43414653058895e-05f;
+                real_T k_model_6 = -1.34375303328745e-05f;
                 real_T Y1 = SN[0] * u1 * omega1 * k_model_6 + v1 * omega1 * k_model_5;
                 real_T Y2 = SN[1] * u2 * omega2 * k_model_6 + v2 * omega2 * k_model_5;
                 real_T Y3 = SN[2] * u3 * omega3 * k_model_6 + v3 * omega3 * k_model_5;
@@ -987,8 +1021,8 @@ namespace msr {
                 // Computation of moments around the x axis.It is explained in Equation
                 // 24 of the paper "Aerodynamic Model Identification of a Quadrotor 
                 // Subjected to Rotor Failures in the High - Speed Flight Regime"
-                real_T k_model_7 = -6.49293933727443e-06;
-                real_T k_model_8 = 1.99308688196749e-06;
+                real_T k_model_7 = -6.49293933727443e-06f;
+                real_T k_model_8 = 1.99308688196749e-06f;
                 real_T L1 = SN[0] * u1 * omega1 * k_model_8 + v1 * omega1 * k_model_7;
                 real_T L2 = SN[1] * u2 * omega2 * k_model_8 + v2 * omega2 * k_model_7;
                 real_T L3 = SN[2] * u3 * omega3 * k_model_8 + v3 * omega3 * k_model_7;
@@ -997,8 +1031,8 @@ namespace msr {
                 // Computation of moments around the y axis.It is explained in Equation
                 // 24 of the paper "Aerodynamic Model Identification of a Quadrotor 
                 // Subjected to Rotor Failures in the High - Speed Flight Regime"
-                real_T k_model_9 = 3.95678611524143e-06;
-                real_T k_model_10 = 2.78425962530407e-07;
+                real_T k_model_9 = 3.95678611524143e-06f;
+                real_T k_model_10 = 2.78425962530407e-07f;
                 real_T M1 = u1 * omega1 * k_model_9 + SN[0] * v1 * omega1 * k_model_10;
                 real_T M2 = u2 * omega2 * k_model_9 + SN[1] * v2 * omega2 * k_model_10;
                 real_T M3 = u3 * omega3 * k_model_9 + SN[2] * v3 * omega3 * k_model_10;
@@ -1085,9 +1119,9 @@ namespace msr {
                     // The gyroscopic moment has to be computed
                     // First the propeller Moment of Inertia is established
                     Matrix3x3r Ip = Matrix3x3r::Zero();
-                    Ip(0, 0) = 4.2e-06; Ip(0, 1) = 0.0f; Ip(0, 2) = 0.0f;
-                    Ip(1, 0) = 0.0f; Ip(1, 1) = 4.2e-06; Ip(1, 2) = 0.0f;
-                    Ip(2, 0) = 0.0f; Ip(2, 1) = 0.0f; Ip(2, 2) = 8.0e-06;
+                    Ip(0, 0) = 4.2e-06f; Ip(0, 1) = 0.0f; Ip(0, 2) = 0.0f;
+                    Ip(1, 0) = 0.0f; Ip(1, 1) = 4.2e-06f; Ip(1, 2) = 0.0f;
+                    Ip(2, 0) = 0.0f; Ip(2, 1) = 0.0f; Ip(2, 2) = 8.0e-06f;
 
                     // Then the gryoscopic part of the moment
                     const Vector3r w1_vector = Vector3r(0.0f, 0.0f, omega1);
@@ -1174,23 +1208,28 @@ namespace msr {
             auto stateHedging(real_T u, real_T v, real_T w, real_T p, real_T q, real_T r)
             {
                 // state hedging boundary parameters for Bebop2
-                real_T pmax = 0.008;
-                real_T qmax = 0.02;
-                real_T rmax = 0.015;
+                real_T pmax = 0.008f;
+                real_T qmax = 0.02f;
+                real_T rmax = 0.015f;
                 
-                real_T umax = 0.5;
-                real_T vmax = 0.5;
-                real_T wmax = 0.05;
-                real_T wmin = -0.2;
+                real_T umax = 0.5f;
+                real_T vmax = 0.5f;
+                real_T wmax = 0.05f;
+                real_T wmin = -0.2f;
 
                 // transfer pqr to the bound
                 real_T Vpq = -qmax / pmax * abs(p) + qmax - abs(q);
                 real_T p0 = p;
                 real_T q0 = q;
-                if (Vpq < 0.)
+                if (Vpq < 0. && abs(p)>0.001)
                 {
                     p0 = sgn(q) * qmax / (sgn(q * p) * qmax / pmax + q / p);
                     q0 = q / p * p0;
+                }
+                else if (Vpq < 0.)
+                {
+                    p0 = 0;
+                    q0 = qmax;
                 }
 
                 real_T r0 = r;
@@ -1203,10 +1242,15 @@ namespace msr {
                 real_T Vuv = u * u + v * v - umax * umax;
                 real_T u0 = u;
                 real_T v0 = v;
-                if (Vuv > 0)
+                if (Vuv > 0 && abs(u) > 0.001)
                 {
                     u0 = sgn(u) * sqrt(umax * umax / ((v / u) * (v / u) + 1));
                     v0 = v / u * u0;
+                }
+                else if (Vuv > 0)
+                {
+                    u0 = 0;
+                    v0 = umax;
                 }
 
                 real_T w0 = w;
@@ -1225,68 +1269,68 @@ namespace msr {
             {
                 // Computations for Ct
                 std::vector<real_T> Ct_A1{ 1, u * u + v * v, -w + vi, w, u * u * u, uq * u, u, uq, u * u * w * w, v * v * u * u * u * w };
-                std::vector<real_T> Ct_k1{ 0.350649467, - 0.834840346, - 1.181790542, - 0.572337294, 0.558029278, - 0.005075139, - 0.015688025, - 0.000567546, 11.85932508, - 314.2433046 };
+                std::vector<real_T> Ct_k1{ 0.350649467f, - 0.834840346f, - 1.181790542f, - 0.572337294f, 0.558029278f, - 0.005075139f, - 0.015688025f, - 0.000567546f, 11.85932508f, - 314.2433046f };
                 std::vector<real_T> Ct_A2{ 1, u * u + v * v, -w + vi, w, abs(v) * uq, u, abs(v) * uq * w, v * v * uq * powf(w, 5), v * v * powf(u, 4), v * v * uq * u, v * v * u * u * w, v * v * abs(q) * u * u * w };
-                std::vector<real_T> Ct_k2{ 0.217632672, -0.363087072, -0.713021858, -0.314832014, -0.032823564, -0.019832009, -0.352240961, 25168.56046, 43.45950654, 0.586207259, -18.11478065, -9221.159726 };
+                std::vector<real_T> Ct_k2{ 0.217632672f, -0.363087072f, -0.713021858f, -0.314832014f, -0.032823564f, -0.019832009f, -0.352240961f, 25168.56046f, 43.45950654f, 0.586207259f, -18.11478065f, -9221.159726f };
                 std::vector<real_T> Ct_A3{ 1, u * u + v * v,-w + vi,v * v * w,uq * u, v * v * uq, w * w, abs(v) * uq * powf(u,3) * w };
-                std::vector<real_T> Ct_k3{ 0.048354336, 0.073426887, -0.116204451, 1.309353321, -0.037616532, -0.051136599, -0.16196609, -361.5340041 };
+                std::vector<real_T> Ct_k3{ 0.048354336f, 0.073426887f, -0.116204451f, 1.309353321f, -0.037616532f, -0.051136599f, -0.16196609f, -361.5340041f };
 
                 real_T Ct;
                 if (abs(beta) <= 30)
                 {
-                    Ct = std::inner_product(Ct_A1.begin(), Ct_A1.end(), Ct_k1.begin(), 0.0);
+                    Ct = std::inner_product(Ct_A1.begin(), Ct_A1.end(), Ct_k1.begin(), 0.0f);
                 }    
                 else if (abs(beta) <= 60)
                 {
-                    Ct = std::inner_product(Ct_A2.begin(), Ct_A2.end(), Ct_k2.begin(), 0.0);
+                    Ct = std::inner_product(Ct_A2.begin(), Ct_A2.end(), Ct_k2.begin(), 0.0f);
                 }
                 else
                 {
-                    Ct = std::inner_product(Ct_A3.begin(), Ct_A3.end(), Ct_k3.begin(), 0.0);
+                    Ct = std::inner_product(Ct_A3.begin(), Ct_A3.end(), Ct_k3.begin(), 0.0f);
                 }
                     
                 // Computations for Cx
-                std::vector<real_T> Cx_A1{ 1, u, w * powf(u,3), w * w * u * u, powf(abs(v), 3), w * abs(v) * abs(v) };
-                std::vector<real_T> Cx_k1{ 0.0, - 0.024526066, 1.293007509, 1.55227301, 0.612890951, 0.491536283 };
-                std::vector<real_T> Cx_A2{ 1, u, v*v, w };
-                std::vector<real_T> Cx_k2{ 0, - 0.024327615, 0.022255392, 0.000799817 };
-                std::vector<real_T> Cx_A3{ 1, u, u*u, abs(v)};
-                std::vector<real_T> Cx_k3{ 0, - 0.023672933, 0.037625469, 0.000425188 };
+                std::vector<real_T> Cx_A1{ 1.0f, u, w * powf(u,3), w * w * u * u, powf(abs(v), 3), w * abs(v) * abs(v) };
+                std::vector<real_T> Cx_k1{ 0.0f, - 0.024526066f, 1.293007509f, 1.55227301f, 0.612890951f, 0.491536283f };
+                std::vector<real_T> Cx_A2{ 1.0f, u, v*v, w };
+                std::vector<real_T> Cx_k2{ 0.0f, - 0.024327615f, 0.022255392f, 0.000799817f };
+                std::vector<real_T> Cx_A3{ 1.0f, u, u*u, abs(v)};
+                std::vector<real_T> Cx_k3{ 0.0f, - 0.023672933f, 0.037625469f, 0.000425188f };
 
                 real_T Cx;
                 if (abs(beta) <= 30)
                 {
-                    Cx = std::inner_product(Cx_A1.begin(), Cx_A1.end(), Cx_k1.begin(), 0.0);
+                    Cx = std::inner_product(Cx_A1.begin(), Cx_A1.end(), Cx_k1.begin(), 0.0f);
                 }
                 else if (abs(beta) <= 60)
                 {
-                    Cx = std::inner_product(Cx_A2.begin(), Cx_A2.end(), Cx_k2.begin(), 0.0);
+                    Cx = std::inner_product(Cx_A2.begin(), Cx_A2.end(), Cx_k2.begin(), 0.0f);
                 }
                 else
                 {
-                    Cx = std::inner_product(Cx_A3.begin(), Cx_A3.end(), Cx_k3.begin(), 0.0);
+                    Cx = std::inner_product(Cx_A3.begin(), Cx_A3.end(), Cx_k3.begin(), 0.0f);
                 }
 
                 // Computations for the Cy
-                std::vector<real_T> Cy_A1{ 1, v, w * w * v, abs(u), w * w, v * v * v, w * v * abs(u) };
-                std::vector<real_T> Cy_k1{ 0.0, - 0.025299121, - 1.577325292, 0.001766453, - 0.021483641, - 0.554514508, - 0.212647222 };
-                std::vector<real_T> Cy_A2{ 1, v, w * v, w * powf(v, 3), powf(v, 3), w * w * v * v };
-                std::vector<real_T> Cy_k2{ 0.0, - 0.02369769, 0.198240073, - 4.20402807, - 0.095904804, 1.069535431 };
-                std::vector<real_T> Cy_A3{ 1, v, w * v, w * v * abs(u), powf(v,3), w * powf(abs(u),3), powf(w,3), v * v };
-                std::vector<real_T> Cy_k3{ 0.0, - 0.02402552, 0.055312012, 0.229868618, - 0.06506344, 8.654558373, - 0.195754684, 0.004037991 };
+                std::vector<real_T> Cy_A1{ 1.0f, v, w * w * v, abs(u), w * w, v * v * v, w * v * abs(u) };
+                std::vector<real_T> Cy_k1{ 0.0f, - 0.025299121f, - 1.577325292f, 0.001766453f, - 0.021483641f, - 0.554514508f, - 0.212647222f };
+                std::vector<real_T> Cy_A2{ 1.0f, v, w * v, w * powf(v, 3), powf(v, 3), w * w * v * v };
+                std::vector<real_T> Cy_k2{ 0.0f, - 0.02369769f, 0.198240073f, - 4.20402807f, - 0.095904804f, 1.069535431f };
+                std::vector<real_T> Cy_A3{ 1.0f, v, w * v, w * v * abs(u), powf(v,3), w * powf(abs(u),3), powf(w,3), v * v };
+                std::vector<real_T> Cy_k3{ 0.0f, - 0.02402552f, 0.055312012f, 0.229868618f, - 0.06506344f, 8.654558373f, - 0.195754684f, 0.004037991f };
 
                 real_T Cy;
                 if (abs(beta) <= 30)
                 {
-                    Cy = std::inner_product(Cy_A1.begin(), Cy_A1.end(), Cy_k1.begin(), 0.0);
+                    Cy = std::inner_product(Cy_A1.begin(), Cy_A1.end(), Cy_k1.begin(), 0.0f);
                 }
                 else if (abs(beta) <= 60)
                 {
-                    Cy = std::inner_product(Cy_A2.begin(), Cy_A2.end(), Cy_k2.begin(), 0.0);
+                    Cy = std::inner_product(Cy_A2.begin(), Cy_A2.end(), Cy_k2.begin(), 0.0f);
                 }
                 else
                 {
-                    Cy = std::inner_product(Cy_A3.begin(), Cy_A3.end(), Cy_k3.begin(), 0.0);
+                    Cy = std::inner_product(Cy_A3.begin(), Cy_A3.end(), Cy_k3.begin(), 0.0f);
                 }
 
                 return retVals_forces{ Ct, Cx, Cy };
@@ -1314,31 +1358,31 @@ namespace msr {
                 real_T Cl;
                 if (abs(beta) <= 7)
                 {
-                    Cl = std::inner_product(Cl_A1.begin(), Cl_A1.end(), Cl_k1.begin(), 0.0);
+                    Cl = std::inner_product(Cl_A1.begin(), Cl_A1.end(), Cl_k1.begin(), 0.0f);
                 }
                 else if (abs(beta) <= 22)
                 {
-                    Cl = std::inner_product(Cl_A2.begin(), Cl_A2.end(), Cl_k2.begin(), 0.0);
+                    Cl = std::inner_product(Cl_A2.begin(), Cl_A2.end(), Cl_k2.begin(), 0.0f);
                 }
                 else if (abs(beta) <= 37)
                 {
-                    Cl = std::inner_product(Cl_A3.begin(), Cl_A3.end(), Cl_k3.begin(), 0.0);
+                    Cl = std::inner_product(Cl_A3.begin(), Cl_A3.end(), Cl_k3.begin(), 0.0f);
                 }
                 else if (abs(beta) <= 52)
                 {
-                    Cl = std::inner_product(Cl_A4.begin(), Cl_A4.end(), Cl_k4.begin(), 0.0);
+                    Cl = std::inner_product(Cl_A4.begin(), Cl_A4.end(), Cl_k4.begin(), 0.0f);
                 }
                 else if (abs(beta) <= 67)
                 {
-                    Cl = std::inner_product(Cl_A5.begin(), Cl_A5.end(), Cl_k5.begin(), 0.0);
+                    Cl = std::inner_product(Cl_A5.begin(), Cl_A5.end(), Cl_k5.begin(), 0.0f);
                 }
                 else if (abs(beta) <= 82)
                 {
-                    Cl = std::inner_product(Cl_A6.begin(), Cl_A6.end(), Cl_k6.begin(), 0.0);
+                    Cl = std::inner_product(Cl_A6.begin(), Cl_A6.end(), Cl_k6.begin(), 0.0f);
                 }
                 else
                 {
-                    Cl = std::inner_product(Cl_A7.begin(), Cl_A7.end(), Cl_k7.begin(), 0.0);
+                    Cl = std::inner_product(Cl_A7.begin(), Cl_A7.end(), Cl_k7.begin(), 0.0f);
                 }
 
                 // Computation of Cm
@@ -1361,27 +1405,27 @@ namespace msr {
                 real_T Cm;
                 if (abs(beta) <= 7)
                 {
-                    Cm = std::inner_product(Cm_A1.begin(), Cm_A1.end(), Cm_k1.begin(), 0.0);
+                    Cm = std::inner_product(Cm_A1.begin(), Cm_A1.end(), Cm_k1.begin(), 0.0f);
                 }
                 else if (abs(beta) <= 22)
                 {
-                    Cm = std::inner_product(Cm_A2.begin(), Cm_A2.end(), Cm_k2.begin(), 0.0);
+                    Cm = std::inner_product(Cm_A2.begin(), Cm_A2.end(), Cm_k2.begin(), 0.0f);
                 }
                 else if (abs(beta) <= 37)
                 {
-                    Cm = std::inner_product(Cm_A3.begin(), Cm_A3.end(), Cm_k3.begin(), 0.0);
+                    Cm = std::inner_product(Cm_A3.begin(), Cm_A3.end(), Cm_k3.begin(), 0.0f);
                 }
                 else if (abs(beta) <= 52)
                 {
-                    Cm = std::inner_product(Cm_A4.begin(), Cm_A4.end(), Cm_k4.begin(), 0.0);
+                    Cm = std::inner_product(Cm_A4.begin(), Cm_A4.end(), Cm_k4.begin(), 0.0f);
                 }
                 else if (abs(beta) <= 67)
                 {
-                    Cm = std::inner_product(Cm_A5.begin(), Cm_A5.end(), Cm_k5.begin(), 0.0);
+                    Cm = std::inner_product(Cm_A5.begin(), Cm_A5.end(), Cm_k5.begin(), 0.0f);
                 }
                 else if (abs(beta) <= 82)
                 {
-                    Cm = std::inner_product(Cm_A6.begin(), Cm_A6.end(), Cm_k6.begin(), 0.0);
+                    Cm = std::inner_product(Cm_A6.begin(), Cm_A6.end(), Cm_k6.begin(), 0.0f);
                 }
                 else
                 {
@@ -1431,12 +1475,57 @@ namespace msr {
                 real_T Cl, Cm, Cn;
             };
 
+            struct retVals_blade_damage_forces_moments {        // Declare a local structure 
+                Vector3r F, M;
+            };
+
+            // Create Propeller, blades, blade sections and compute CG location
+            void createPropellerModel(std::vector<real_T> damage_coeffs_advanced, std::vector<real_T> damage_start_angles_advanced) {
+                int counter = 0;
+                for (DamagedPropeller& propeller : damaged_propellers_)
+                {
+                    std::vector<real_T> damage_coeffs_advanced_local = { damage_coeffs_advanced[counter * 3], damage_coeffs_advanced[counter * 3 + 1], damage_coeffs_advanced[counter * 3 + 2] };
+                    propeller.resetPropeller(damage_coeffs_advanced_local, damage_start_angles_advanced[counter]);
+                    counter++;
+
+                    propeller.createBlades();
+                    propeller.computeBladesParams();
+                    propeller.computeCgLocation();
+                }
+            }
+
+            //// Compute blade damage vibrations in terms of forces and moments
+            //retVals_blade_damage_forces_moments getBladeDamageForcesAndMoments(const real_T& omega_local, const Quaternionr& attitude, const Vector3r& body_velocity, const Vector3r& pqr, const real_T& dt)
+            //{
+            //    // Create vectors where forces and moments will be added
+            //    Vector3r F = Vector3r{ 0, 0, 0 };
+            //    Vector3r M = Vector3r{ 0, 0, 0 };
+
+            //    // Computation of forces and moments that derive from the change in mass
+            //    auto FM_cg = propeller_.computeCgForcesMoments(omega_local, attitude);
+            //    F += FM_cg.F_vector;
+            //    M += FM_cg.M_vector;
+
+            //    // Computation of moments and forces derived from the loss in an aerodynamic surface
+            //    auto TM = propeller_.computeThrustMoment(n_blade_segment_, omega_local, cla_coeffs_, cda_coeffs_, body_velocity, pqr);
+            //    F.z() -= TM.T_damaged;
+            //    M -= TM.M_damaged;
+
+            //    auto TF = propeller_.computeTorqueForce(n_blade_segment_, omega_local, cla_coeffs_, cda_coeffs_, body_velocity, pqr);
+            //    M.z() -= TF.Q_damaged;
+            //    F -= TF.F_damaged;
+
+            //    propeller_.updateRotationAngle(omega_local, dt);
+            //    return retVals_blade_damage_forces_moments{ F, M };
+            //}
+
 
             // When used, the drone properties in SimpleFlightQuadXParams.hpp have to be changed to setupFrameBB2Leon.
             void getNextKinematicsNoCollisionFM_BB2_dml_6DOF(TTimeDelta dt, PhysicsBody& body, const Kinematics::State& current,
                 Kinematics::State& next, Wrench& next_wrench, const Vector3r& wind, float prop_damage[])
             {
                 const real_T dt_real = static_cast<real_T>(dt);
+                const real_T current_time = static_cast<real_T>((clock()->nowNanos() - clock()->getStart()) / 1.0E9);
                 Vector3r avg_linear;
                 Vector3r avg_angular;
                 if (use_average_values)
@@ -1453,7 +1542,7 @@ namespace msr {
                 const Vector3r relative_vel = avg_linear - wind;
                 const Vector3r linear_vel_body = VectorMath::transformToBodyFrame(relative_vel, current.pose.orientation);
 
-                std::vector<real_T> PWMs = body.getPWMrotors_INDI(previous);
+                std::vector<real_T> PWMs = body.getPWMrotors_INDI(previous, dt_real, current_time, mass_F_, mass_M_, aero_F_, aero_M_);
 
                 real_T omega1 = PWMs[0];
                 if (omega1 <= 1) { omega1 = 0.0f; }
@@ -1463,6 +1552,17 @@ namespace msr {
                 if (omega3 <= 1) { omega3 = 0.0f; }
                 real_T omega4 = PWMs[3];
                 if (omega4 <= 1) { omega4 = 0.0f; }
+
+                bool teleport_reset = body.getSwitchTeleportReset();
+                if (teleport_reset)
+                {
+                    omega1_last = omega1;
+                    omega2_last = omega2;
+                    omega3_last = omega3;
+                    omega4_last = omega4;
+                    previous.accelerations.linear = Vector3r::Zero();
+                    previous.accelerations.angular = Vector3r::Zero();
+                }
 
                 real_T N = 4.;
                 real_T Omega = sqrt((omega1 * omega1 + omega2 * omega2 + omega3 * omega3 + omega4 * omega4) / N);
@@ -1484,7 +1584,6 @@ namespace msr {
                         n_broken_prop++;
                     }
                 }
-                body.choose_inertia(n_broken_prop, b, l);
 
                 // Computation of angular rates
                 real_T p = avg_angular.x() / (Omega * R) * b;
@@ -1554,12 +1653,55 @@ namespace msr {
                 real_T My = rho * Cm * Omega * Omega * (N * M_PIf * R * R) * R * R * b;
                 real_T Mz = rho * Cn * Omega * Omega * (N * M_PIf * R * R) * R * R * b;
 
+                // Obtain propeller damage information
+                bool switch_damage_prop_params = body.getSwitchDamagePropParams();
+                if (switch_damage_prop_params)
+                {
+                    std::vector<real_T> damage_coeffs_advanced = body.getDamagePropParams();
+                    std::vector<real_T> damage_start_angles_advanced = body.getDamagePropStartAngles();
+                    createPropellerModel(damage_coeffs_advanced, damage_start_angles_advanced);
+                }
+
+                bool switch_activate_blade_damage = body.getSwitchActivateBladeDamage();
+                Vector3r delta_F = Vector3r::Zero();
+                Vector3r delta_M = Vector3r::Zero();
+                real_T lost_propeller_mass = 0.0f;
+                if (switch_activate_blade_damage)
+                {
+                    std::vector<real_T> omegas{ omega1, omega2, omega3, omega4 };
+                    int counter = 0;
+                    mass_F_ = Vector3r::Zero();
+                    mass_M_ = Vector3r::Zero();
+                    aero_F_ = Vector3r::Zero();
+                    aero_M_ = Vector3r::Zero();
+                    for (DamagedPropeller& propeller : damaged_propellers_)
+                    {
+                        auto delta_FM = propeller.computeMassAeroFM(n_blade_segment_, omegas[counter], current.pose.orientation, cla_coeffs_, cda_coeffs_, avg_linear, avg_angular, rho);
+                        delta_F += delta_FM.delta_F;
+                        delta_M += delta_FM.delta_M;
+                        mass_F_ += delta_FM.mass_F;
+                        mass_M_ += delta_FM.mass_M;
+                        aero_F_ += delta_FM.aero_F;
+                        aero_M_ += delta_FM.aero_M;
+                        lost_propeller_mass += propeller.get_propeller_lost_mass();
+                        // Rotate propeller for the next computation
+                        propeller.updateRotationAngle(omegas[counter], dt_real);
+                        counter++;
+                    }
+                }
+
                 // Obtain the force and moment vector
+                body.choose_inertia(n_broken_prop, b, l, lost_propeller_mass);
                 Wrench wrench = Wrench::zero();
-                Vector3r local_force = Vector3r(Fx, Fy, -T);
-                Vector3r local_torque = Vector3r(Mx, My, Mz);
+                Vector3r local_force = Vector3r(Fx, Fy, -T) + delta_F;
+                Vector3r local_torque = Vector3r(Mx, My, Mz) + delta_M;
                 wrench.force = local_force;
                 wrench.torque = local_torque;
+
+                if (isnan(Fx) || isnan(Fy) || isnan(T) || isnan(Mx) || isnan(My) || isnan(Mz))
+                {
+                    int a = 1;
+                }
 
                 //convert force to world frame, leave torque to local frame
                 wrench.force = VectorMath::transformToWorldFrame(wrench.force, current.pose.orientation);
@@ -1637,8 +1779,12 @@ namespace msr {
                     omega3_last = omega3;
                     omega4_last = omega4;
 
-
-                    const Vector3r M_gyro = signr * (M_gyro_first + M_gyro_second);
+                    // It is strange that the change in omega in a time step is constant independently of the time-step size. As a result, the rest of the contributions to the angular acceleration are minuscule compared to the gyroscopic effect.
+                    Vector3r M_gyro = signr * (M_gyro_first + M_gyro_second);
+                    if (dummy_trial)
+                    {
+                        M_gyro = signr * (M_gyro_second);
+                    }
                     const Vector3r angular_momentum_rate = next_wrench.torque - M_gyro - avg_angular.cross(angular_momentum);
                     //new angular acceleration - we'll use this acceleration in next time step
                     next.accelerations.angular = apply_process_noise(body.getInertiaInv() * angular_momentum_rate, mean_pqr, cov_pqr);
@@ -1865,6 +2011,10 @@ namespace msr {
                         theta_update = theta + theta_update_v * dt_real + 1 / 6.0f * (4. * theta_update_a - theta_update_a_previous) * dt_real * dt_real;
                         psi_update = psi + psi_update_v * dt_real + 1 / 6.0f * (4. * psi_update_a - psi_update_a_previous) * dt_real * dt_real;
                     }
+                    else
+                    {
+                        throw std::runtime_error("The selected integration method does not exist.");
+                    }
 
                     next.pose.orientation = VectorMath::toQuaternion(theta_update, phi_update, psi_update);
                     if (VectorMath::hasNan(next.pose.orientation)) {
@@ -1977,10 +2127,16 @@ namespace msr {
                     }
                     //re-normalize quaternion to avoid accumulating error
                     next.pose.orientation.normalize();
+
+                    // limit the position of the drone to avoid core dumping
+                    next.pose.position.x() = std::max(std::min(next.pose.position.x(), 10000.0f), -10000.0f);
+                    next.pose.position.y() = std::max(std::min(next.pose.position.y(), 10000.0f), -10000.0f);
+                    next.pose.position.z() = std::max(std::min(next.pose.position.z(), 10000.0f), -10000.0f);
                 }                 
             }
 
         private:
+            bool dummy_trial = false;
             static constexpr uint kCollisionResponseCycles = 1;
             static constexpr float kAxisTolerance = 0.25f;
             static constexpr float kRestingVelocityMax = 0.1f;
@@ -2002,7 +2158,7 @@ namespace msr {
 
 
             // Parameter for the Bebop2
-            static constexpr int max_w = 1200; // maximum number of radians per second of the propeller
+            static constexpr int max_w = 1256; // maximum number of radians per second of the propeller
             static constexpr int max_w_squared = max_w * max_w; // maximum number of radians per second of the propeller squared
             static constexpr real_T R = 0.075; // radius described by the propeller
             static constexpr real_T l = 0.0875; // distance of propeller to the y-axis of the drone
@@ -2013,10 +2169,10 @@ namespace msr {
 
             static constexpr real_T rad2deg_factor = 180.0f / M_PIf;   // variable that is used to convert an angle from radians to degrees
 
-            real_T omega1_last = 0.0f;
-            real_T omega2_last = 0.0f;
-            real_T omega3_last = 0.0f;
-            real_T omega4_last = 0.0f;
+            real_T omega1_last = 796.761719f;
+            real_T omega2_last = 796.761719f;
+            real_T omega3_last = 796.761719f;
+            real_T omega4_last = 796.761719f;
 
             FirstOrderFilter<real_T> control_signal_filter_w1;
             //FirstOrderFilter<real_T> control_signal_filter_w2;
@@ -2027,15 +2183,28 @@ namespace msr {
             // Variables related to process noise
             std::default_random_engine generator;
             bool activate_process_noise = false;
-            Vector3r cov_pqr = Vector3r(0.0001, 0.0001, 0.0001);
-            Vector3r cov_att = Vector3r(10e-10, 10e-10, 10e-10);
-            Vector3r cov_xyz = Vector3r(10e-10, 10e-10, 10e-10);
-            Vector3r cov_vxyz = Vector3r(0.0001, 0.0001, 0.0001);
+            Vector3r cov_pqr = Vector3r(0.0001f, 0.0001f, 0.0001f);
+            Vector3r cov_att = Vector3r(10e-10f, 10e-10f, 10e-10f);
+            Vector3r cov_xyz = Vector3r(10e-10f, 10e-10f, 10e-10f);
+            Vector3r cov_vxyz = Vector3r(0.0001f, 0.0001f, 0.0001f);
 
             Vector3r mean_pqr = Vector3r(0.0f, 0.0f, 0.0f);
             Vector3r mean_att = Vector3r(0.0f, 0.0f, 0.0f);
             Vector3r mean_xyz = Vector3r(0.0f, 0.0f, 0.0f);
             Vector3r mean_vxyz = Vector3r(0.0f, 0.0f, 0.0f);
+
+            // Variables for propeller damage
+            vector<DamagedPropeller> damaged_propellers_;
+            int n_blade_segment_ = 100;
+            vector<real_T> cla_coeffs_{ 0.241574347f, 5.15236959f, -12.2553556f };
+            vector<real_T> cda_coeffs_{ 0.00922164567f, -0.792542848f, 15.1364609f };
+
+            // Variables related to mass and aero forces and moments storage
+            Vector3r mass_F_ = Vector3r::Zero();
+            Vector3r mass_M_ = Vector3r::Zero();
+            Vector3r aero_F_ = Vector3r::Zero();
+            Vector3r aero_M_ = Vector3r::Zero();
+
         };
 
     }

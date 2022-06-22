@@ -71,9 +71,34 @@ public: //interface
         throw std::runtime_error("getPWMrotors API is not supported for this vehicle");
     }
 
-    virtual std::vector<real_T> getPWMrotors_INDI(Kinematics::State previous)
+    virtual std::vector<real_T> getPWMrotors_INDI(const Kinematics::State& previous, const real_T& dt_real, const real_T& current_time, const Vector3r& damaged_mass_forces = Vector3r::Zero(), const Vector3r& damaged_mass_moments = Vector3r::Zero(), const Vector3r& damaged_aero_forces = Vector3r::Zero(), const Vector3r& damaged_aero_moments = Vector3r::Zero())
     {
         throw std::runtime_error("getPWMrotors_INDI API is not supported for this vehicle");
+    }
+
+    virtual bool getSwitchTeleportReset()
+    {
+        throw std::runtime_error("getSwitchTeleportReset API is not supported for this vehicle");
+    }
+
+    virtual bool getSwitchDamagePropParams()
+    {
+        throw std::runtime_error("getSwitchDamagePropParams API is not supported for this vehicle");
+    }
+
+    virtual bool getSwitchActivateBladeDamage()
+    {
+        throw std::runtime_error("getSwitchActivateBladeDamage API is not supported for this vehicle");
+    }
+
+    virtual std::vector<real_T> getDamagePropParams()
+    {
+        throw std::runtime_error("getDamagePropParams API is not supported for this vehicle");
+    }
+
+    virtual std::vector<real_T> getDamagePropStartAngles()
+    {
+        throw std::runtime_error("getDamagePropStartAngles API is not supported for this vehicle");
     }
 
     virtual void collectCameraData()
@@ -172,16 +197,16 @@ public: //methods
         return inertia_inv_;
     }
 
-    void choose_inertia(real_T damaged_propellers, real_T b, real_T l)
+    void choose_inertia(real_T damaged_propellers, real_T b, real_T l, real_T lost_propeller_mass=0.0f)
     {
-        real_T first_coeff = inertia_original(0, 0) - b * b * 0.005 * damaged_propellers;
+        real_T first_coeff = inertia_original(0, 0) - b * b * 0.005 * damaged_propellers - b * b * lost_propeller_mass;
         if (first_coeff != inertia_(0, 0))
         {
             inertia_(0, 0) = first_coeff;
-            inertia_(1, 1) = inertia_original(1, 1) - l * l * 0.005 * damaged_propellers;
-            inertia_(2, 2) = inertia_original(2, 2) - (b * b + l * l) * 0.005 * damaged_propellers;
+            inertia_(1, 1) = inertia_original(1, 1) - l * l * 0.005 * damaged_propellers - l * l * lost_propeller_mass;
+            inertia_(2, 2) = inertia_original(2, 2) - (b * b + l * l) * 0.005 * damaged_propellers - (b * b + l * l) * lost_propeller_mass;
             inertia_inv_ = inertia_.inverse();
-            mass_ = mass_original - 0.005 * damaged_propellers;
+            mass_ = mass_original - 0.005 * damaged_propellers - lost_propeller_mass;
             mass_inv_ = 1.0 / mass_;
         }
     }

@@ -92,12 +92,18 @@ public:
         throw VehicleCommandNotImplementedException("collectAllData API is not supported for this vehicle");
     }
 
-    virtual std::vector<real_T> actuator_dyn(Kinematics::State previous)
+    virtual std::vector<real_T> actuator_dyn(const Kinematics::State& previous, const real_T& dt_real, const real_T& current_time, const Vector3r& damaged_mass_forces, const Vector3r& damaged_mass_moments, const Vector3r& damaged_aero_forces, const Vector3r& damaged_aero_moments)
     {
         unused(previous);
+        unused(dt_real);
+        unused(current_time);
+        unused(damaged_mass_forces);
+        unused(damaged_mass_moments);
+        unused(damaged_aero_forces);
+        unused(damaged_aero_moments);
         throw VehicleCommandNotImplementedException("actuator_dyn API is not supported for this vehicle");
     }
-
+    
     virtual void setNextPathLocObj(Pose pose)
     {
         unused(pose);
@@ -110,6 +116,16 @@ public:
         unused(activate);
         throw VehicleCommandNotImplementedException("setPlotDataCollectionAct API is not supported for this vehicle");
     }
+
+    // General methods for data collection
+    virtual void setAct(bool activation, float sample_rate, std::string data_name)
+    {
+        unused(activation);
+        unused(sample_rate);
+        unused(data_name);
+        throw VehicleCommandNotImplementedException("setAct API is not supported for this vehicle");
+    }
+
 
     // Methods related to the reference position data gathering
     virtual void storePosRefData()
@@ -456,6 +472,121 @@ public:
         throw VehicleCommandNotImplementedException("getThrustPiStoredData API is not supported for this vehicle");
     }
 
+    // Methods related to the damaged mass forces
+    virtual void storeDamagedMassForcesData()
+    {
+        throw VehicleCommandNotImplementedException("storeDamagedMassForcesData API is not supported for this vehicle");
+    }
+
+    virtual void setDamagedMassForcesAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setDamagedMassForcesAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanDamagedMassForcesSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanDamagedMassForcesSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getDamagedMassForcesStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getDamagedMassForcesStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the damaged mass Moments
+    virtual void storeDamagedMassMomentsData()
+    {
+        throw VehicleCommandNotImplementedException("storeDamagedMassMomentsData API is not supported for this vehicle");
+    }
+
+    virtual void setDamagedMassMomentsAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setDamagedMassMomentsAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanDamagedMassMomentsSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanDamagedMassMomentsSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getDamagedMassMomentsStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getDamagedMassMomentsStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the damaged aero forces
+    virtual void storeDamagedAeroForcesData()
+    {
+        throw VehicleCommandNotImplementedException("storeDamagedAeroForcesData API is not supported for this vehicle");
+    }
+
+    virtual void setDamagedAeroForcesAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setDamagedAeroForcesAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanDamagedAeroForcesSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanDamagedAeroForcesSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getDamagedAeroForcesStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getDamagedAeroForcesStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the damaged aero Moments
+    virtual void storeDamagedAeroMomentsData()
+    {
+        throw VehicleCommandNotImplementedException("storeDamagedAeroMomentsData API is not supported for this vehicle");
+    }
+
+    virtual void setDamagedAeroMomentsAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setDamagedAeroMomentsAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanDamagedAeroMomentsSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanDamagedAeroMomentsSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getDamagedAeroMomentsStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getDamagedAeroMomentsStoredData API is not supported for this vehicle");
+    }
+
+    // Methods related to the time data gathering
+    virtual void storeTimeInfoData()
+    {
+        throw VehicleCommandNotImplementedException("storeTimeInfoData API is not supported for this vehicle");
+    }
+
+    virtual void setTimeInfoAct(bool activation, float sample_rate)
+    {
+        unused(activation);
+        unused(sample_rate);
+        throw VehicleCommandNotImplementedException("setTimeInfoAct API is not supported for this vehicle");
+    }
+
+    virtual void cleanTimeInfoSD()
+    {
+        throw VehicleCommandNotImplementedException("cleanTimeInfoSD API is not supported for this vehicle");
+    }
+
+    virtual std::vector<std::vector<float>> getTimeInfoStoredData()
+    {
+        throw VehicleCommandNotImplementedException("getTimeInfoStoredData API is not supported for this vehicle");
+    }
+
     // Methods related to the Camera data gathering
     virtual void storeCameraData()
     {
@@ -628,7 +759,52 @@ public:
         throw VehicleCommandNotImplementedException("setTeleportYawReference API is not supported for this vehicle");
     }
 
+    virtual bool getSwitchTeleportPhysicsReset()
+    {
+        throw VehicleCommandNotImplementedException("getSwitchTeleportPhysicsReset API is not supported for this vehicle");
+    }
+
     // Methods related to the drone failure
+    virtual bool getSwitchActivateBladeDamageAdvanced()
+    {
+        throw VehicleCommandNotImplementedException("getSwitchActivateBladeDamageAdvanced API is not supported for this vehicle");
+    }
+
+    virtual bool getSwitchDamagePropParamsAdvanced()
+    {
+        throw VehicleCommandNotImplementedException("getSwitchDamagePropParamsAdvanced API is not supported for this vehicle");
+    }
+
+    virtual std::vector<real_T> getDamagePropParamsAdvanced()
+    {
+        throw VehicleCommandNotImplementedException("getDamagePropParamsAdvanced API is not supported for this vehicle");
+    }
+
+    virtual std::vector<real_T> getDamagePropStartAnglesAdvanced()
+    {
+        throw VehicleCommandNotImplementedException("getDamagePropStartAnglesAdvanced API is not supported for this vehicle");
+    }
+
+    virtual void setSwitchActBladeDamageAdvanced(bool switch_activate_blade_damage_advanced)
+    {
+        unused(switch_activate_blade_damage_advanced);
+        throw VehicleCommandNotImplementedException("setSwitchActBladeDamageAdvanced API is not supported for this vehicle");
+    }
+
+    virtual void setDamageCoeffAdvanced(int propeller, int blade, float damage_coefficient, float start_angle)
+    {
+        unused(propeller);
+        unused(blade);
+        unused(damage_coefficient);
+        unused(start_angle);
+        throw VehicleCommandNotImplementedException("refreshDamageCoeffAdvanced API is not supported for this vehicle");
+    }
+
+    virtual void resetDamageCoeffAdvanced()
+    {
+        throw VehicleCommandNotImplementedException("resetDamageCoeffAdvanced API is not supported for this vehicle");
+    }
+
     virtual void setDamageCoeff(float new_coeffs[4])
     {
         unused(new_coeffs);

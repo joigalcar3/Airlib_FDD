@@ -89,11 +89,46 @@ public:
         return PWMs;
     }
 
-    std::vector<real_T> getPWMrotors_INDI(Kinematics::State previous) override
+    std::vector<real_T> getPWMrotors_INDI(const Kinematics::State& previous, const real_T& dt_real, const real_T& current_time, const Vector3r& damaged_mass_forces = Vector3r::Zero(), const Vector3r& damaged_mass_moments = Vector3r::Zero(), const Vector3r& damaged_aero_forces = Vector3r::Zero(), const Vector3r& damaged_aero_moments = Vector3r::Zero()) override
     {
         std::vector<real_T> PWMs;
-        PWMs = vehicle_api_->actuator_dyn(previous);
+        PWMs = vehicle_api_->actuator_dyn(previous, dt_real, current_time, damaged_mass_forces, damaged_mass_moments, damaged_aero_forces, damaged_aero_moments);
         return PWMs;
+    }
+
+    bool getSwitchTeleportReset() override
+    {
+        bool SwitchTeleportReset;
+        SwitchTeleportReset = vehicle_api_->getSwitchTeleportPhysicsReset();
+        return SwitchTeleportReset;
+    }
+
+    bool getSwitchDamagePropParams() override
+    {
+        bool SwitchDamagePropParams;
+        SwitchDamagePropParams = vehicle_api_->getSwitchDamagePropParamsAdvanced();
+        return SwitchDamagePropParams;
+    }
+
+    bool getSwitchActivateBladeDamage() override
+    {
+        bool SwitchActivateBladeDamage;
+        SwitchActivateBladeDamage = vehicle_api_->getSwitchActivateBladeDamageAdvanced();
+        return SwitchActivateBladeDamage;
+    }
+
+    std::vector<real_T> getDamagePropParams() override
+    {
+        std::vector<real_T> DamagedPropParams;
+        DamagedPropParams = vehicle_api_->getDamagePropParamsAdvanced();
+        return DamagedPropParams;
+    }
+
+    std::vector<real_T> getDamagePropStartAngles() override
+    {
+        std::vector<real_T> DamagedPropStartAngles;
+        DamagedPropStartAngles = vehicle_api_->getDamagePropStartAnglesAdvanced();
+        return DamagedPropStartAngles;
     }
 
     virtual void collectCameraData()

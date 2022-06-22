@@ -38,6 +38,7 @@ namespace msr {
             real_T propeller_diameter = 0.2286f;   //diameter in meters, default is for DJI Phantom 2
             real_T propeller_height = 1 / 100.0f;   //height of cylindrical area when propeller rotates, 1 cm
             real_T control_signal_filter_tc = 0.005f;    //time constant for low pass filter
+            int number_blades = 3;   // the number of blades of each rotor
             //real_T damage_coeff = 1.0f;
 
             real_T revolutions_per_second;
