@@ -98,6 +98,12 @@ void MultirotorApiBase::setPlotDataCollectionActivation(bool activation)
     setPlotDataCollectionAct(activation);
 }
 
+// General methods for data collection
+void MultirotorApiBase::setActivation(bool activation, float sample_rate, std::string data_name)
+{
+    setAct(activation, sample_rate, data_name);
+}
+
 // Methods related to the reference position data gathering
 void MultirotorApiBase::setPosRefActivation(bool activation, float sample_rate)
 {
@@ -531,6 +537,151 @@ ThrustPiStoredData MultirotorApiBase::getThrustPiStoredDataVec()
     return dc;
 }
 
+// Methods related to the damaged mass forces
+void MultirotorApiBase::setDamagedMassForcesActivation(bool activation, float sample_rate)
+{
+    setDamagedMassForcesAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanDamagedMassForcesStoredData()
+{
+    cleanDamagedMassForcesSD();
+}
+
+DamagedMassForcesStoredData MultirotorApiBase::getDamagedMassForcesStoredDataVec()
+{
+    std::vector<std::vector<float>> damaged_mass_forces_data = getDamagedMassForcesStoredData();
+    std::vector<float> damaged_mass_forces_x;
+    std::vector<float> damaged_mass_forces_y;
+    std::vector<float> damaged_mass_forces_z;
+
+    for (int i = 0; i < damaged_mass_forces_data.size(); i++)
+    {
+        damaged_mass_forces_x.push_back(damaged_mass_forces_data[i][0]);
+        damaged_mass_forces_y.push_back(damaged_mass_forces_data[i][1]);
+        damaged_mass_forces_z.push_back(damaged_mass_forces_data[i][2]);
+    }
+
+    DamagedMassForcesStoredData dc = DamagedMassForcesStoredData(damaged_mass_forces_x, damaged_mass_forces_y, damaged_mass_forces_z);
+    return dc;
+}
+
+// Methods related to the damaged mass moments
+void MultirotorApiBase::setDamagedMassMomentsActivation(bool activation, float sample_rate)
+{
+    setDamagedMassMomentsAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanDamagedMassMomentsStoredData()
+{
+    cleanDamagedMassMomentsSD();
+}
+
+DamagedMassMomentsStoredData MultirotorApiBase::getDamagedMassMomentsStoredDataVec()
+{
+    std::vector<std::vector<float>> damaged_mass_moments_data = getDamagedMassMomentsStoredData();
+    std::vector<float> damaged_mass_moments_x;
+    std::vector<float> damaged_mass_moments_y;
+    std::vector<float> damaged_mass_moments_z;
+
+    for (int i = 0; i < damaged_mass_moments_data.size(); i++)
+    {
+        damaged_mass_moments_x.push_back(damaged_mass_moments_data[i][0]);
+        damaged_mass_moments_y.push_back(damaged_mass_moments_data[i][1]);
+        damaged_mass_moments_z.push_back(damaged_mass_moments_data[i][2]);
+    }
+
+    DamagedMassMomentsStoredData dc = DamagedMassMomentsStoredData(damaged_mass_moments_x, damaged_mass_moments_y, damaged_mass_moments_z);
+    return dc;
+}
+
+// Methods related to the damaged aero forces
+void MultirotorApiBase::setDamagedAeroForcesActivation(bool activation, float sample_rate)
+{
+    setDamagedAeroForcesAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanDamagedAeroForcesStoredData()
+{
+    cleanDamagedAeroForcesSD();
+}
+
+DamagedAeroForcesStoredData MultirotorApiBase::getDamagedAeroForcesStoredDataVec()
+{
+    std::vector<std::vector<float>> damaged_aero_forces_data = getDamagedAeroForcesStoredData();
+    std::vector<float> damaged_aero_forces_x;
+    std::vector<float> damaged_aero_forces_y;
+    std::vector<float> damaged_aero_forces_z;
+
+    for (int i = 0; i < damaged_aero_forces_data.size(); i++)
+    {
+        damaged_aero_forces_x.push_back(damaged_aero_forces_data[i][0]);
+        damaged_aero_forces_y.push_back(damaged_aero_forces_data[i][1]);
+        damaged_aero_forces_z.push_back(damaged_aero_forces_data[i][2]);
+    }
+
+    DamagedAeroForcesStoredData dc = DamagedAeroForcesStoredData(damaged_aero_forces_x, damaged_aero_forces_y, damaged_aero_forces_z);
+    return dc;
+}
+
+// Methods related to the damaged aero moments
+void MultirotorApiBase::setDamagedAeroMomentsActivation(bool activation, float sample_rate)
+{
+    setDamagedAeroMomentsAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanDamagedAeroMomentsStoredData()
+{
+    cleanDamagedAeroMomentsSD();
+}
+
+DamagedAeroMomentsStoredData MultirotorApiBase::getDamagedAeroMomentsStoredDataVec()
+{
+    std::vector<std::vector<float>> damaged_aero_moments_data = getDamagedAeroMomentsStoredData();
+    std::vector<float> damaged_aero_moments_x;
+    std::vector<float> damaged_aero_moments_y;
+    std::vector<float> damaged_aero_moments_z;
+
+    for (int i = 0; i < damaged_aero_moments_data.size(); i++)
+    {
+        damaged_aero_moments_x.push_back(damaged_aero_moments_data[i][0]);
+        damaged_aero_moments_y.push_back(damaged_aero_moments_data[i][1]);
+        damaged_aero_moments_z.push_back(damaged_aero_moments_data[i][2]);
+    }
+
+    DamagedAeroMomentsStoredData dc = DamagedAeroMomentsStoredData(damaged_aero_moments_x, damaged_aero_moments_y, damaged_aero_moments_z);
+    return dc;
+}
+
+// Methods related to the time data gathering
+void MultirotorApiBase::setTimeInfoActivation(bool activation, float sample_rate)
+{
+    setTimeInfoAct(activation, sample_rate);
+}
+
+void MultirotorApiBase::cleanTimeInfoStoredData()
+{
+    cleanTimeInfoSD();
+}
+
+TimeInfoStoredData MultirotorApiBase::getTimeInfoStoredDataVec()
+{
+    std::vector<std::vector<float>> time_data = getTimeInfoStoredData();
+    std::vector<float> time;
+    std::vector<float> dt_real;
+    std::vector<float> sampling_frequency;
+
+    for (int i = 0; i < time_data.size(); i++)
+    {
+        time.push_back(time_data[i][0]);
+        dt_real.push_back(time_data[i][1]);
+        sampling_frequency.push_back(time_data[i][2]);
+    }
+
+    TimeInfoStoredData dc = TimeInfoStoredData(time, dt_real, sampling_frequency);
+    return dc;
+}
+
 // Methods related to the camera data gathering
 void MultirotorApiBase::setCameraActivation(bool activation, float sample_rate, const std::vector<ImageCaptureBase::ImageRequest>& request, VehicleSimApiBase* const& api)
 {
@@ -808,6 +959,21 @@ void MultirotorApiBase::setTeleportYawRef(float yaw_angle_ref)
 }
 
 // Methods related to the drone failures
+void MultirotorApiBase::setDamageCoefficientAdvanced(int propeller, int blade, float damage_coefficient, float start_angle)
+{
+    setDamageCoeffAdvanced(propeller, blade, damage_coefficient, start_angle);
+}
+
+void MultirotorApiBase::resetDamageCoefficientAdvanced()
+{
+    resetDamageCoeffAdvanced();
+}
+
+void MultirotorApiBase::setSwitchActivateBladeDamageAdvanced(bool switch_activate_blade_damage_advanced)
+{
+    setSwitchActBladeDamageAdvanced(switch_activate_blade_damage_advanced);
+}
+
 void MultirotorApiBase::setDamageCoefficients(float new_coeff_1, float new_coeff_2, float new_coeff_3, float new_coeff_4)
 {
     float new_coeffs[4] = {new_coeff_1, new_coeff_2, new_coeff_3, new_coeff_4};
@@ -1032,6 +1198,8 @@ bool MultirotorApiBase::moveOnPath(const vector<Vector3r>& path, float velocity,
     float lookahead, float adaptive_lookahead)
 {
     SingleTaskCall lock(this);
+    adaptive_lookahead_var = adaptive_lookahead;
+    lookahead_var = lookahead;
 
     //validate path size
     if (path.size() == 0) {

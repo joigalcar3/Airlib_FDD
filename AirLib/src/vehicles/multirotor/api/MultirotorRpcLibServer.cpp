@@ -65,6 +65,12 @@ MultirotorRpcLibServer::MultirotorRpcLibServer(ApiProvider* api_provider, string
         getVehicleApi(vehicle_name)->setPlotDataCollectionActivation(activation);
             });
 
+    // General methods for data collection
+    (static_cast<rpc::server*>(getServer()))->
+        bind("setActivation", [&](bool activation, float sample_rate, std::string data_name, const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->setActivation(activation, sample_rate, data_name);
+            });
+
     // Methods related to the reference position data gathering
     (static_cast<rpc::server*>(getServer()))->
         bind("setPosRefActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
@@ -305,6 +311,86 @@ MultirotorRpcLibServer::MultirotorRpcLibServer(ApiProvider* api_provider, string
         return MultirotorRpcLibAdaptors::ThrustPiStoredData(getVehicleApi(vehicle_name)->getThrustPiStoredDataVec());
             });
 
+    // Methods related to the damaged mass forces due to blade damage data gathering
+    (static_cast<rpc::server*>(getServer()))->
+        bind("setDamagedMassForcesActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->setDamagedMassForcesActivation(activation, sample_rate);
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("cleanDamagedMassForcesStoredData", [&](const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->cleanDamagedMassForcesStoredData();
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("getDamagedMassForcesStoredDataVec", [&](const std::string& vehicle_name) -> MultirotorRpcLibAdaptors::DamagedMassForcesStoredData {
+        return MultirotorRpcLibAdaptors::DamagedMassForcesStoredData(getVehicleApi(vehicle_name)->getDamagedMassForcesStoredDataVec());
+            });
+
+    // Methods related to the damaged mass moments due to blade damage data gathering
+    (static_cast<rpc::server*>(getServer()))->
+        bind("setDamagedMassMomentsActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->setDamagedMassMomentsActivation(activation, sample_rate);
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("cleanDamagedMassMomentsStoredData", [&](const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->cleanDamagedMassMomentsStoredData();
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("getDamagedMassMomentsStoredDataVec", [&](const std::string& vehicle_name) -> MultirotorRpcLibAdaptors::DamagedMassMomentsStoredData {
+        return MultirotorRpcLibAdaptors::DamagedMassMomentsStoredData(getVehicleApi(vehicle_name)->getDamagedMassMomentsStoredDataVec());
+            });
+
+    // Methods related to the damaged aero forces due to blade damage data gathering
+    (static_cast<rpc::server*>(getServer()))->
+        bind("setDamagedAeroForcesActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->setDamagedAeroForcesActivation(activation, sample_rate);
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("cleanDamagedAeroForcesStoredData", [&](const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->cleanDamagedAeroForcesStoredData();
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("getDamagedAeroForcesStoredDataVec", [&](const std::string& vehicle_name) -> MultirotorRpcLibAdaptors::DamagedAeroForcesStoredData {
+        return MultirotorRpcLibAdaptors::DamagedAeroForcesStoredData(getVehicleApi(vehicle_name)->getDamagedAeroForcesStoredDataVec());
+            });
+
+    // Methods related to the damaged aero moments due to blade damage data gathering
+    (static_cast<rpc::server*>(getServer()))->
+        bind("setDamagedAeroMomentsActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->setDamagedAeroMomentsActivation(activation, sample_rate);
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("cleanDamagedAeroMomentsStoredData", [&](const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->cleanDamagedAeroMomentsStoredData();
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("getDamagedAeroMomentsStoredDataVec", [&](const std::string& vehicle_name) -> MultirotorRpcLibAdaptors::DamagedAeroMomentsStoredData {
+        return MultirotorRpcLibAdaptors::DamagedAeroMomentsStoredData(getVehicleApi(vehicle_name)->getDamagedAeroMomentsStoredDataVec());
+            });
+
+    // Methods related to the time data gathering
+    (static_cast<rpc::server*>(getServer()))->
+        bind("setTimeInfoActivation", [&](bool activation, float sample_rate, const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->setTimeInfoActivation(activation, sample_rate);
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("cleanTimeInfoStoredData", [&](const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->cleanTimeInfoStoredData();
+            });
+
+    (static_cast<rpc::server*>(getServer()))->
+        bind("getTimeInfoStoredDataVec", [&](const std::string& vehicle_name) -> MultirotorRpcLibAdaptors::TimeInfoStoredData {
+        return MultirotorRpcLibAdaptors::TimeInfoStoredData(getVehicleApi(vehicle_name)->getTimeInfoStoredDataVec());
+            });
+
     // Methods related to the Camera data gathering
     (static_cast<rpc::server*>(getServer()))->
         bind("setCameraActivation", [&](bool activation, float sample_rate, const std::vector<MultirotorRpcLibAdaptors::ImageRequest>& request_adapter, const std::string& vehicle_name) -> void {
@@ -424,6 +510,18 @@ MultirotorRpcLibServer::MultirotorRpcLibServer(ApiProvider* api_provider, string
             });
 
     //Methods related to the drone failures
+    (static_cast<rpc::server*>(getServer()))->
+        bind("setDamageCoefficientAdvanced", [&](int propeller, int blade, float damage_coefficient, float start_angle, const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->setDamageCoefficientAdvanced(propeller, blade, damage_coefficient, start_angle);
+            });
+    (static_cast<rpc::server*>(getServer()))->
+        bind("resetDamageCoefficientAdvanced", [&](const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->resetDamageCoefficientAdvanced();
+            });
+    (static_cast<rpc::server*>(getServer()))->
+        bind("setSwitchActivateBladeDamageAdvanced", [&](bool switch_activate_blade_damage_advanced, const std::string& vehicle_name) -> void {
+        getVehicleApi(vehicle_name)->setSwitchActivateBladeDamageAdvanced(switch_activate_blade_damage_advanced);
+            });
     (static_cast<rpc::server*>(getServer()))->
         bind("setDamageCoefficients", [&](float new_coeff_1, float new_coeff_2, float new_coeff_3, float new_coeff_4, const std::string& vehicle_name) -> void {
         getVehicleApi(vehicle_name)->setDamageCoefficients(new_coeff_1, new_coeff_2, new_coeff_3, new_coeff_4);

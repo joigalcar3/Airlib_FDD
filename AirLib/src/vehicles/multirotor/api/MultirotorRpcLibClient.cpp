@@ -86,6 +86,12 @@ void MultirotorRpcLibClient::setPlotDataCollectionActivation(bool activation, co
     static_cast<rpc::client*>(getClient())->call("setPlotDataCollectionActivation", activation, vehicle_name);
 }
 
+// General methods for data collection
+void MultirotorRpcLibClient::setActivation(bool activation, float sample_rate, std::string data_name, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setActivation", activation, sample_rate, data_name, vehicle_name);
+}
+
 // Methods related to the reference position data gathering
 void MultirotorRpcLibClient::setPosRefActivation(bool activation, float sample_rate, const std::string& vehicle_name)
 {
@@ -326,6 +332,86 @@ ThrustPiStoredData MultirotorRpcLibClient::getThrustPiStoredDataVec(const std::s
     return static_cast<rpc::client*>(getClient())->call("getThrustPiStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::ThrustPiStoredData>().to();
 }
 
+// Methods related to the damaged mass forces due to blade damage data gathering
+void MultirotorRpcLibClient::setDamagedMassForcesActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setDamagedMassForcesActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanDamagedMassForcesStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanDamagedMassForcesStoredData", vehicle_name);
+}
+
+DamagedMassForcesStoredData MultirotorRpcLibClient::getDamagedMassForcesStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getDamagedMassForcesStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::DamagedMassForcesStoredData>().to();
+}
+
+// Methods related to the damaged mass moments due to blade damage data gathering
+void MultirotorRpcLibClient::setDamagedMassMomentsActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setDamagedMassMomentsActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanDamagedMassMomentsStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanDamagedMassMomentsStoredData", vehicle_name);
+}
+
+DamagedMassMomentsStoredData MultirotorRpcLibClient::getDamagedMassMomentsStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getDamagedMassMomentsStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::DamagedMassMomentsStoredData>().to();
+}
+
+// Methods related to the damaged aero forces due to blade damage data gathering
+void MultirotorRpcLibClient::setDamagedAeroForcesActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setDamagedAeroForcesActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanDamagedAeroForcesStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanDamagedAeroForcesStoredData", vehicle_name);
+}
+
+DamagedAeroForcesStoredData MultirotorRpcLibClient::getDamagedAeroForcesStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getDamagedAeroForcesStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::DamagedAeroForcesStoredData>().to();
+}
+
+// Methods related to the damaged aero moments due to blade damage data gathering
+void MultirotorRpcLibClient::setDamagedAeroMomentsActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setDamagedAeroMomentsActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanDamagedAeroMomentsStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanDamagedAeroMomentsStoredData", vehicle_name);
+}
+
+DamagedAeroMomentsStoredData MultirotorRpcLibClient::getDamagedAeroMomentsStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getDamagedAeroMomentsStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::DamagedAeroMomentsStoredData>().to();
+}
+
+// Methods related to the time data gathering
+void MultirotorRpcLibClient::setTimeInfoActivation(bool activation, float sample_rate, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setTimeInfoActivation", activation, sample_rate, vehicle_name);
+}
+
+void MultirotorRpcLibClient::cleanTimeInfoStoredData(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("cleanTimeInfoStoredData", vehicle_name);
+}
+
+TimeInfoStoredData MultirotorRpcLibClient::getTimeInfoStoredDataVec(const std::string& vehicle_name)
+{
+    return static_cast<rpc::client*>(getClient())->call("getTimeInfoStoredDataVec", vehicle_name).as<MultirotorRpcLibAdaptors::TimeInfoStoredData>().to();
+}
+
 // Methods related to the Camera data gathering
 void MultirotorRpcLibClient::setCameraActivation(bool activation, float sample_rate, vector<ImageCaptureBase::ImageRequest> request, const std::string& vehicle_name)
 {
@@ -445,6 +531,21 @@ void MultirotorRpcLibClient::setTeleportYawRef(float yaw_angle_ref, const std::s
 }
 
 // Methods related to the drone failures
+void MultirotorRpcLibClient::setDamageCoefficientAdvanced(int propeller, int blade, float damage_coefficient, float start_angle, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setDamageCoefficientAdvanced", propeller, blade, damage_coefficient, start_angle, vehicle_name);
+}
+
+void MultirotorRpcLibClient::resetDamageCoefficientAdvanced(const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("resetDamageCoefficientAdvanced", vehicle_name);
+}
+
+void MultirotorRpcLibClient::setSwitchActivateBladeDamageAdvanced(bool switch_activate_blade_damage_advanced, const std::string& vehicle_name)
+{
+    static_cast<rpc::client*>(getClient())->call("setSwitchActivateBladeDamageAdvanced", switch_activate_blade_damage_advanced, vehicle_name);
+}
+
 void MultirotorRpcLibClient::setDamageCoefficients(float new_coeff_1, float new_coeff_2, float new_coeff_3, float new_coeff_4, const std::string& vehicle_name)
 {
     static_cast<rpc::client*>(getClient())->call("setDamageCoefficients", new_coeff_1, new_coeff_2, new_coeff_3, new_coeff_4, vehicle_name);
