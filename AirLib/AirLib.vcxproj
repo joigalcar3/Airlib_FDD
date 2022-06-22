@@ -319,7 +319,7 @@
       </Command>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>xcopy /E /Y "E:\Master_project\Simulator\AirSim_simulator\AirSim\AirLib\include" "E:\Master_project\Simulator\AirSim_simulator\AirSim\Unreal\Environments\Blocks\Plugins\AirSim\Source\AirLib\include" &amp; xcopy /E /Y "E:\Master_project\Simulator\AirSim_simulator\AirSim\AirLib\lib" "E:\Master_project\Simulator\AirSim_simulator\AirSim\Unreal\Environments\Blocks\Plugins\AirSim\Source\AirLib\lib" &amp; xcopy /E /Y "E:\Master_project\Simulator\AirSim_simulator\AirSim\AirLib\src" "E:\Master_project\Simulator\AirSim_simulator\AirSim\Unreal\Environments\Blocks\Plugins\AirSim\Source\AirLib\src"</Command>
+      <Command>xcopy /E /Y "E:\Master_project\Simulator\AirSim_simulator\AirSim\AirLib" "E:\Master_project\Simulator\AirSim_simulator\AirSim\Unreal\Environments\Blocks\Plugins\AirSim\Source\AirLib"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -384,7 +384,7 @@
       </Command>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>xcopy /E /Y "E:\Master_project\Simulator\AirSim_simulator\AirSim\AirLib\include" "E:\Master_project\Simulator\AirSim_simulator\AirSim\Unreal\Environments\Blocks\Plugins\AirSim\Source\AirLib\include" &amp; xcopy /E /Y "E:\Master_project\Simulator\AirSim_simulator\AirSim\AirLib\lib" "E:\Master_project\Simulator\AirSim_simulator\AirSim\Unreal\Environments\Blocks\Plugins\AirSim\Source\AirLib\lib" &amp; xcopy /E /Y "E:\Master_project\Simulator\AirSim_simulator\AirSim\AirLib\src" "E:\Master_project\Simulator\AirSim_simulator\AirSim\Unreal\Environments\Blocks\Plugins\AirSim\Source\AirLib\src"</Command>
+      <Command>xcopy /E /Y "E:\Master_project\Simulator\AirSim_simulator\AirSim\AirLib" "E:\Master_project\Simulator\AirSim_simulator\AirSim\Unreal\Environments\Blocks\Plugins\AirSim\Source\AirLib"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
