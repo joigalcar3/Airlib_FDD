@@ -7,7 +7,7 @@
  * @brief Provides the BladeSection, class for the aerodynamic model identification and computation of forces and moments.
  *
  * @author Jose Ignacio de Alvear Cardenas
- * Contact: j.i.dealvearcardenas@student.tudelft.nl
+ * Contact: jialvear@hotmail.com
  *
  */
 
@@ -20,8 +20,26 @@
 
 namespace msr {
     namespace airlib {
+        /// <summary>
+        /// Provides the DamagedBladeSection, class for the aerodynamic model identification and computation of forces and moments.
+        /// DamagedBladeSection holds all the information related to a single blade element according to BEM theory.It is used for the
+        /// computation of the angle of attackand velocity seen by each BladeSection. Additionally, it computes the contribution
+        /// of the BladeSection lift and drag to the thrust force and torque.
+        /// </summary>
         class DamagedBladeSection {
         public:
+            /// <summary>
+            /// Initialize a Damaged Blade Section instance.
+            /// </summary>
+            /// <param name="section_number">the id number of the blade section within its parent Blade class</param>
+            /// <param name="chord">the average chord of the blade section</param>
+            /// <param name="section_length">the length of the blade section</param>
+            /// <param name="average_twist">the average twist experienced along the blade section</param>
+            /// <param name="initial_chord">the chord at the root of the blade section</param>
+            /// <param name="final_chord">the chord at the tip of the blade section</param>
+            /// <param name="radius_hub">the radius of the middle propeller hub</param>
+            /// <param name="rotation_direction">the direction of rotation of the propeller</param>
+            /// <param name="air_density">the density of the air</param>
             DamagedBladeSection(const int& section_number, const real_T& chord, const real_T& section_length, const real_T& average_twist, const real_T& initial_chord, const real_T& final_chord, const real_T& radius_hub,
                 const int& rotation_direction, const real_T& air_density=1.225)
             {
@@ -59,7 +77,13 @@ namespace msr {
             };
 
             //%% Class functions
-            // Compute the angle of attack
+            /// <summary>
+            ///  Compute the angle of attack
+            /// </summary>
+            /// <param name="rotor_speed">velocity experienced by the complete motor due to the translation and rotation of the body</param> 
+            /// <param name="Vx">x-component of the velocity experienced by the blade in the blade coordinate frame. This means that it is the velocity component perpendicular to the blade</param>
+            /// <param name="vi">induced velocity</param>
+            /// <returns>the blade section angle of attack</returns>
             real_T computeAoa(const Vector3r& rotor_speed, const real_T& Vx, const real_T& vi) {
                 // Computation of the angle of attack
                 real_T Vz_bl = -rotor_speed.z() + vi;
@@ -83,7 +107,18 @@ namespace msr {
                 return aoa;
             }
 
-            // Compute the velocity along the chord of the blade section
+            /// <summary>
+            /// Compute the velocity along the chord of the blade section
+            /// </summary>
+            /// <param name="omega">rotational velocity of the rotor</param>
+            /// <param name="position_rotor">current rotation of the propeller relative to the body coordinate frame. When the rotor
+            /// position is at an angle of 90 degrees, then the bodyand the rotor coordinate frames coincide.When the rotor
+            /// angle is 0 degrees, then the x - axis of the propeller is pointing towards the negative body y - axis and the y - axis
+            /// of the propeller is pointing towards the positive body x - axis.</param>
+            /// <param name="rotor_speed">velocity experienced by the complete motor due to the translation and rotation of the body</param>
+            /// <param name="vi">induced velocity</param>
+            /// <returns>velocity perpendicular to the blade section's chord in the x-y propeller plane (Vl) and the total velocity
+            /// experienced by the blade section along the plane perpendicular to its chord(V_total).</returns>
             retVals_compute_velocity computeVelocity(const real_T& omega, const real_T& position_rotor, const Vector3r& rotor_speed, const real_T& vi) {
                 real_T Vr = rotation_direction_ * omega * y_;
                 real_T Vx_bl = -(sin(position_rotor) * rotor_speed.x() - cos(position_rotor) * rotor_speed.y());
@@ -99,7 +134,16 @@ namespace msr {
                 return retVals_compute_velocity{Vl, V_total};
             }
 
-            // Method that computes the velocity and the angle of attack required for the computation of Least Squares
+            /// <summary>
+            /// Method that computes the velocity and the angle of attack required for the computation of Least Squares
+            /// </summary>
+            /// <param name="omega">rotational velocity of the rotor</param>
+            /// <param name="position_rotor">current rotation of the blade relative to the body coordinate frame</param>
+            /// <param name="rotor_speed">velocity experienced by the complete motor due to the translation and rotation of the body</param>
+            /// <param name="inflow_data">data regarding the inflow field, namely the uniform induced inflow field, induced inflow
+            /// velocityand a lambda function that computes the linear induced field depending on the blade element distance
+            /// from the huband angle with respect to the inflow.["v0", "lambda_0", "induced_velocity_func"(r, psi), "R"]</param>
+            /// <returns>the velocity experienced by the blade section used in the lift equation and the angle of attack</returns>
             retVals_LS_term_params computeLSTermParams(const real_T& omega, const real_T& position_rotor, const Vector3r& rotor_speed, 
                 std::function<real_T(real_T, real_T)> inflow_data) {
                 stall_ = false;
@@ -108,11 +152,11 @@ namespace msr {
                 real_T Vxy_angle = atan2(rotor_speed.y(), rotor_speed.x());
                 real_T inter_vector_angle = acos(std::max(std::min((rotor_speed.x() * cos(position_rotor) + rotor_speed.y() * sin(position_rotor)) / (sqrt(powf(rotor_speed.x(), 2) + powf(rotor_speed.y(), 2))), 1.0f), -1.0f));
                 real_T blade_angle = position_rotor;
-                if (blade_angle > M_PIf) {
+                if (blade_angle > M_PIf) {  //Keep the angle within [-pi, pi]
                     blade_angle = -(2 * M_PIf - position_rotor);
                 }
 
-                if (blade_angle < Vxy_angle) {
+                if (blade_angle < Vxy_angle) {  // # Transformation from blade angle coordinate frame to azimuth coordinate frame
                     inter_vector_angle = -inter_vector_angle;
                 }
 
@@ -135,7 +179,19 @@ namespace msr {
                 return retVals_LS_term_params{ V_total, aoa };
             }
 
-            // Method that computes the torque produced by the blade section drag and the corresponding force in the x-y plane
+            /// <summary>
+            /// Method that computes the torque produced by the blade section drag and the corresponding force in the x-y plane
+            /// </summary>
+            /// <param name="omega">the speed at which the propeller is rotating [rad/s]</param>
+            /// <param name="rotor_speed">speed at which the drone is flying</param>
+            /// <param name="position_rotor">position of the propeller coordinate frame relative to the body frame. This information
+            /// is necessary in order to understand how much of the air velocity is perpendicular to the blade[rad]</param>
+            /// <param name="cla_coeffs">list of coefficients used for the computation of the cl given the angle of attack</param>
+            /// <param name="cda_coeffs">list of coefficients used for the computation of the cd given the angle of attack</param>
+            /// <param name="inflow_data">data regarding the inflow field, namely the uniform induced inflow field, induced inflow
+            /// velocityand a lambda function that computes the linear induced field depending on the blade element distance
+            /// from the huband angle with respect to the inflow.</param>
+            /// <returns>blade section torque and forces in the x-y body plane</returns>
             retVals_torque_force computeTorqueForce(const real_T& omega, const Vector3r& rotor_speed, const real_T& position_rotor, const vector<real_T>& cla_coeffs,
                 const vector<real_T>& cda_coeffs, std::function<real_T(real_T, real_T)> inflow_data) {
 
@@ -172,8 +228,20 @@ namespace msr {
                 return retVals_torque_force{dQ, dF};
             }
 
-            // Method that computes the thrust produced by the blade section and its corresponding moment about the center of
-            // the propeller caused by the thrust force
+            /// <summary>
+            /// Method that computes the thrust produced by the blade section and its corresponding moment about the center of
+            /// the propeller caused by the thrust force
+            /// </summary>
+            /// <param name="omega">the speed at which the propeller is rotating [rad/s]</param>
+            /// <param name="rotor_speed">speed at which the drone is flying</param>
+            /// <param name="position_rotor">position of the propeller coordinate frame relative to the body frame. This information
+            /// is necessary in order to understand how much of the air velocity is perpendicular to the blade[rad]</param>
+            /// <param name="cla_coeffs">list of coefficients used for the computation of the cl given the angle of attack</param>
+            /// <param name="cda_coeffs">list of coefficients used for the computation of the cd given the angle of attack</param>
+            /// <param name="inflow_data">data regarding the inflow field, namely the uniform induced inflow field, induced inflow
+            /// velocityand a lambda function that computes the linear induced field depending on the blade element distance
+            /// from the huband angle with respect to the inflow.</param>
+            /// <returns>blade section thrust and moments in the x-y body plane</returns>
             retVals_thrust_moment computeThrustMoment(const real_T& omega, const Vector3r& rotor_speed, const real_T& position_rotor, const vector<real_T>& cla_coeffs,
                 const vector<real_T>& cda_coeffs, std::function<real_T(real_T, real_T)> inflow_data) {
                 // Compute parameters
