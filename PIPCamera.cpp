@@ -369,6 +369,11 @@ void APIPCamera::updateCaptureComponentSetting(USceneCaptureComponent2D* capture
     if (capture->ProjectionType == ECameraProjectionMode::Orthographic && !std::isnan(setting.ortho_width))
         capture->OrthoWidth = ned_transform.fromNed(setting.ortho_width);
 
+    // New code: Jose
+    //capture->ShowFlags.ScreenPercentage = 1000.0f;
+    //capture->ShowFlags.SetScreenPercentage(true);
+    //capture->ShowFlags.ScreenPercentage = 200.0f;
+    capture->ShowFlags.SetTemporalAA(true);
     updateCameraPostProcessingSetting(capture->PostProcessSettings, setting);
 }
 

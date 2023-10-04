@@ -1217,7 +1217,7 @@ namespace msr {
                     omega.push_back(only_filter(actuator_low_pass_filter[i], omega_cmd(i)));
 
                     // Saturating the actuator rate by saturating its rate of change
-                    omega[i] = apply_rate_limit(omega[i], actuator_rate_limit_output[i], w_dot_max, w_dot_min, dt_real_integration);
+                    //omega[i] = apply_rate_limit(omega[i], actuator_rate_limit_output[i], w_dot_max, w_dot_min, dt_real_integration);
 
                     // Apply failure to the propeller
                     if (locked_propeller[i] == true) {

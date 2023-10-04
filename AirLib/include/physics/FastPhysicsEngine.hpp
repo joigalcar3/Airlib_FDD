@@ -1674,11 +1674,20 @@ namespace msr {
                     mass_M_ = Vector3r::Zero();
                     aero_F_ = Vector3r::Zero();
                     aero_M_ = Vector3r::Zero();
+                    std::vector<int> SL{ 1, -1, -1, 1 };
+                    std::vector<int> SM{ 1, 1, -1, -1 };
+                    std::vector<int> SN{ signr * 1, signr * -1, signr * 1, signr * -1 };
                     for (DamagedPropeller& propeller : damaged_propellers_)
                     {
                         auto delta_FM = propeller.computeMassAeroFM(n_blade_segment_, omegas[counter], current.pose.orientation, cla_coeffs_, cda_coeffs_, avg_linear, avg_angular, rho);
                         delta_F += delta_FM.delta_F;
                         delta_M += delta_FM.delta_M;
+
+                        Vector3r forces2moments = Vector3r(-SL[counter] * b * delta_FM.delta_F.z(), -SM[counter] * l * delta_FM.delta_F.z(),
+                            b * SL[counter] * delta_FM.delta_F.x() + l * SM[counter] * delta_FM.delta_F.y());
+
+                        delta_M += forces2moments;
+
                         mass_F_ += delta_FM.mass_F;
                         mass_M_ += delta_FM.mass_M;
                         aero_F_ += delta_FM.aero_F;
