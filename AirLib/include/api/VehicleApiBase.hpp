@@ -68,14 +68,6 @@ public:
         unused(last_interval);
     }
 
-    //below APIs are used by FastPhysicsEngine
-    //virtual real_T getActuation(unsigned int actuator_index, std::mutex& mutexito)
-    //{
-    //    unused(actuator_index);
-    //    unused(mutexito);
-    //    throw VehicleCommandNotImplementedException("getActuation API is not supported for this vehicle");
-    //}
-
     virtual void droneTeleportReset()
     {
         throw VehicleCommandNotImplementedException("droneTeleportReset API is not supported for this vehicle");

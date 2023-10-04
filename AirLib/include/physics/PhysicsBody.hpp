@@ -197,6 +197,13 @@ public: //methods
         return inertia_inv_;
     }
 
+    /// <summary>
+    /// Function to compute the moment of inertial of the drone with propeller damage
+    /// </summary>
+    /// <param name="damaged_propellers">the number of propellers damaged</param>
+    /// <param name="b">distance from the propellers to the body x-axis [m]</param>
+    /// <param name="l">distance from the propellers to the body y-axis [m]</param>
+    /// <param name="lost_propeller_mass">propeller mass lost</param>
     void choose_inertia(real_T damaged_propellers, real_T b, real_T l, real_T lost_propeller_mass=0.0f)
     {
         real_T first_coeff = inertia_original(0, 0) - b * b * 0.005 * damaged_propellers - b * b * lost_propeller_mass;
@@ -281,20 +288,9 @@ public: //methods
 		grounded_ = grounded;
 	}
 
-	void lock()
-	{
-		mutexito.lock();
-	}
-
-	void unlock()
-	{
-		mutexito.unlock();
-	}
-
 public:
     //for use in physics engine: //TODO: use getter/setter or friend method?
     TTimePoint last_kinematics_time;
-    std::mutex mutexito;
 
 private:
     real_T mass_, mass_inv_, mass_original, mass_original_inv;
