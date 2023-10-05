@@ -288,9 +288,21 @@ public: //methods
 		grounded_ = grounded;
 	}
 
+    void lock()
+    {
+        mutexito.lock();
+    }
+
+    void unlock()
+    {
+        mutexito.unlock();
+    }
+
+
 public:
     //for use in physics engine: //TODO: use getter/setter or friend method?
     TTimePoint last_kinematics_time;
+    std::mutex mutexito;
 
 private:
     real_T mass_, mass_inv_, mass_original, mass_original_inv;

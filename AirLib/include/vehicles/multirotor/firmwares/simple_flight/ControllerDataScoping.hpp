@@ -5,9 +5,11 @@
  * @file ControllerDataScoping.hpp
  *
  * @brief Provides the ControllerDataScoping, class for the storage of data for scoping from the controller.
+ * Its a file in progress since the end goal is to migrate all the scoping functions from SimpleFlightApi.hpp 
+ * to the current file, "ControllerDataScoping.hpp". It is still unfinished and in the developer's TODO list.
  *
  * @author Jose Ignacio de Alvear Cardenas
- * Contact: j.i.dealvearcardenas@student.tudelft.nl
+ * Contact: jialvear@hotmail.com
  *
  */
 
@@ -116,36 +118,6 @@ namespace msr {
                 {
                     setTimeInfoAct(activation, sample_rate);
                 }
-                //else if (data_name == "Camera")
-                //{
-                //    setCameraAct(activation, sample_rate);
-                //}
-                //else if (data_name == "IMU")
-                //{
-                //    setIMUAct(activation, sample_rate);
-                //}
-                //else if (data_name == "PWM")
-                //{
-                //    setPWMAct(activation, sample_rate);
-                //}
-                //else if (data_name == "Position")
-                //{
-                //    setPositionAct(activation, sample_rate);
-                //}
-                //else if (data_name == "Barometer")
-                //{
-                //    setBarometerAct(activation, sample_rate);
-                //}
-                //else if (data_name == "Magnetometer")
-                //{
-                //    setMagnetometerAct(activation, sample_rate);
-                //}
-                //else if (data_name == "GPS")
-                //{
-                //setGPSAct(activation, sample_rate);
-                //}
-                
-
             }
 
             // Function that calls all methods that collect data
@@ -172,13 +144,6 @@ namespace msr {
                 storeDamagedAeroForcesData();
                 storeDamagedAeroMomentsData();
                 storeTimeInfoData();
-                //storeCameraData();
-                //storeIMUData();
-                //storePWMData();
-                //storePositionData();
-                //storeBarometerData();
-                //storeMagnetometerData();
-                //storeGPSData();
             }
 
             // Methods related to the activation of general data collection for plotting
