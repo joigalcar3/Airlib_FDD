@@ -34,10 +34,10 @@ namespace msr {
         /// functions were added for an Incremental Nonlinear Dynamic Inversion controller (INDI) that is triggered when the method
         /// called "getPWMrotors_INDI" is called. 
         /// 
-        /// Additionally, the SimpleFlightApi contains all the functions that allows the scoping
-        /// of simulation signals. This means that one can request from the Python API to store a certain signal from a pool options
+        /// Additionally, the SimpleFlightApi contains all the functions that allow the scoping
+        /// of simulation signals. This means that one can request from the Python API to store a certain signal from a pool of options
         /// in order to plot it or for debugging purposes. Examples of signals are the propeller rotational speeds, the vehicle position,
-        /// velocity or acceleration, or the forces created by the propeller damage. The methods dealing with the so called signal scoping 
+        /// velocity or acceleration, or the forces created by the propeller damage. The methods dealing with signal scoping 
         /// can be found from the method "collectAllData" onwards.
         /// </summary>
         class SimpleFlightApi : public MultirotorApiBase {
