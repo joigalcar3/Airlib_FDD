@@ -4,8 +4,6 @@
 #ifndef msr_airlib_SimpleFlightDroneController_hpp
 #define msr_airlib_SimpleFlightDroneController_hpp
 
-//#include "vehicles/multirotor/firmwares/simple_flight/firmware/interfaces/IPidIntegrator.hpp"
-//#include "vehicles/multirotor/firmwares/simple_flight/firmware/StdPidIntegrator.hpp"
 #include "common/FirstOrderFilter.hpp"
 #include <Eigen/Dense>
 #include <Eigen/QR>
@@ -31,7 +29,17 @@
 
 namespace msr {
     namespace airlib {
-
+        /// <summary>
+        /// Provides the controller of the vehicle. The original default code would provide a PID controller. However, all the 
+        /// functions were added for an Incremental Nonlinear Dynamic Inversion controller (INDI) that is triggered when the method
+        /// called "getPWMrotors_INDI" is called. 
+        /// 
+        /// Additionally, the SimpleFlightApi contains all the functions that allows the scoping
+        /// of simulation signals. This means that one can request from the Python API to store a certain signal from a pool options
+        /// in order to plot it or for debugging purposes. Examples of signals are the propeller rotational speeds, the vehicle position,
+        /// velocity or acceleration, or the forces created by the propeller damage. The methods dealing with the so called signal scoping 
+        /// can be found from the method "collectAllData" onwards.
+        /// </summary>
         class SimpleFlightApi : public MultirotorApiBase {
 
         public:
@@ -76,7 +84,7 @@ namespace msr {
                 pos_error_low_pass_filter_z.initialize(ps_error_controller_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
                 pos_error_low_pass_filter_z.reset();
 
-                // Low pass  filter for the velocity error
+                // Low pass filter for the velocity error
                 real_T v_error_controller_lp_time_constant = 0.05f;    //time constant for low pass filter
                 v_error_low_pass_filter_x.initialize(v_error_controller_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
                 v_error_low_pass_filter_x.reset();
@@ -86,7 +94,7 @@ namespace msr {
                 v_error_low_pass_filter_z.reset();
                 
 
-                //// Low pass filter for the yaw reference
+                // Low pass filter for the yaw reference
                 real_T yaw_ref_controller_lp_time_constant = 0.1f;    //time constant for low pass filter
                 yaw_ref_low_pass_filter.initialize(yaw_ref_controller_lp_time_constant, 0.0f, 0.0f, 0.0f, 0.0f, integration_method);
                 yaw_ref_low_pass_filter.reset();
@@ -163,7 +171,7 @@ namespace msr {
                 MultirotorApiBase::resetImplementation();
 
                 // Resetting all the created parameters for the INDI controller
-                // Dummy parameters
+                // Dummy parameters for debugging
                 dummy = false;
                 dummy_yaw_ref = 0.0f;
                 dummy_x = 0.0f;
@@ -263,7 +271,7 @@ namespace msr {
             virtual void droneTeleportReset() override
             {
                 // Resetting all the created parameters for the INDI controller
-                // Dummy parameters
+                // Dummy parameters for debugging
                 dummy = false;
                 dummy_yaw_ref = 0.0f;
                 dummy_x = 0.0f;
@@ -415,6 +423,11 @@ namespace msr {
 
         public:
 
+            /// <summary>
+            /// Given a rotor index, it provides the right index of the Bebop 2 drone
+            /// </summary>
+            /// <param name="rotor_index">default rotor index</param>
+            /// <returns>Bebop 2 rotor index</returns>
             virtual real_T getActuation(unsigned int rotor_index) override
             {
                 real_T control_signal;
@@ -466,6 +479,13 @@ namespace msr {
             };
 
             // Helper function
+            /// <summary>
+            /// Function which applies 1 time step to a filter and computes the derivative of its output given its output value at the
+            /// previous time step
+            /// </summary>
+            /// <param name="low_pass_filter">the low pass filter object</param>
+            /// <param name="filter_input">the input to the filter at the current time step</param>
+            /// <returns>the time derivative of the output of the filter</returns>
             real_T filter_derivative(FirstOrderFilter<real_T>& low_pass_filter, real_T filter_input)
             {
                 low_pass_filter.setInput(filter_input);
@@ -480,10 +500,15 @@ namespace msr {
                 {
                     filtered_input_dot = output_difference / dt_real_integration;
                 }
-                //filtered_input_last = filtered_input;
                 return filtered_input_dot;
             }
 
+            /// <summary>
+            /// Function which applies a low pass filter to a signal per time step
+            /// </summary>
+            /// <param name="low_pass_filter">the low pass filter</param>
+            /// <param name="filter_input">the current time step value of the signal to be filtered</param>
+            /// <returns>the filtered signal value</returns>
             real_T only_filter(FirstOrderFilter<real_T>& low_pass_filter, real_T filter_input)
             {
                 low_pass_filter.setInput(filter_input);
@@ -492,6 +517,12 @@ namespace msr {
                 return filtered_input;
             }
 
+            /// <summary>
+            /// Function which provides as output both, the filtered value of the signal and the derivative of its output
+            /// </summary>
+            /// <param name="low_pass_filter">the low pass filter</param>
+            /// <param name="filter_input">the current time step value of the signal to be filtered</param>
+            /// <returns>filter output and its time derivative</returns>
             auto filter_and_derivative(FirstOrderFilter<real_T>& low_pass_filter, real_T filter_input)
             {
                 low_pass_filter.setInput(filter_input);
@@ -502,6 +533,19 @@ namespace msr {
                 return filt_der{ filtered_input, filtered_input_dot };
             }
 
+            /// <summary>
+            /// Function which applies a rolling integral to a signal
+            /// </summary>
+            /// <param name="integrator_current">computed integral till the previous time step</param>
+            /// <param name="x_dot_previous">derivative of signal in the previous time step</param>
+            /// <param name="x_dot_current">derivative of signal in the current time step</param>
+            /// <param name="x_dot_next">derivative of signal in the next time step</param>
+            /// <param name="dt_real">time step size</param>
+            /// <param name="activate_upper_limit">whether the output has an upper limit saturation</param>
+            /// <param name="upper_limit">upper limit saturation threshold</param>
+            /// <param name="activate_lower_limit">whether the output has a lower limit saturation</param>
+            /// <param name="lower_limit">lower limit saturation threshold</param>
+            /// <returns>current value of the signal integral</returns>
             real_T apply_integral(real_T integrator_current, real_T& x_dot_previous, real_T& x_dot_current, real_T x_dot_next, real_T dt_real, bool activate_upper_limit = false, real_T upper_limit = 0, bool activate_lower_limit = false, real_T lower_limit = 0)
             {
                 if (integration_method == 0)  // Verlet algorithm
@@ -541,6 +585,15 @@ namespace msr {
                 return integrator_current;
             }
 
+            /// <summary>
+            /// Function which saturates the derivative of a signal
+            /// </summary>
+            /// <param name="current_value">current signal value</param>
+            /// <param name="old_value">pervious signal value</param>
+            /// <param name="upper_rate_limit">upper limit saturation value</param>
+            /// <param name="lower_rate_limit">lower limit saturation value</param>
+            /// <param name="dt">time step size</param>
+            /// <returns>saturated signal value at the current time step</returns>
             real_T apply_rate_limit(real_T& current_value, real_T& old_value, real_T& upper_rate_limit, real_T& lower_rate_limit, real_T& dt)
             {
                 real_T difference = current_value - old_value;
@@ -550,6 +603,10 @@ namespace msr {
                 return output_value;
             }
 
+            /// <summary>
+            /// Function which compute the yaw angle that is not limited by the default AirSim [-180,180] degrees cyclic range
+            /// </summary>
+            /// <param name="yaw">current yaw angle value</param>
             void compute_infinite_yaw(real_T yaw)
             {
                 int yaw_sign = yaw>=0;
@@ -643,6 +700,13 @@ namespace msr {
                 previous_yaw_angle = yaw;
             }
 
+            /// <summary>
+            /// Function which adds Gaussian noise to an input value given a mean and variance
+            /// </summary>
+            /// <param name="clean_number">input clean value</param>
+            /// <param name="mean">Gaussian noise mean</param>
+            /// <param name="variance">Gaussian noise variance</param>
+            /// <returns>noisy input value</returns>
             real_T gaussian_noise(real_T clean_number, real_T mean, real_T variance)
             {
                 real_T standard_deviation = sqrt(variance);
@@ -651,6 +715,13 @@ namespace msr {
                 return dirty_number;
             }
 
+            /// <summary>
+            /// Function which adds Gaussian noise to a 3D vector given a mean and variance for each vector element
+            /// </summary>
+            /// <param name="clean_numbers">3D vector clean values</param>
+            /// <param name="means">3D vector of Gaussian noise means</param>
+            /// <param name="variances">3D vector of Gaussian noise variances</param>
+            /// <returns>noisy 3D vector</returns>
             Vector3r gaussian_noise(Vector3r clean_numbers, Vector3r means, Vector3r variances)
             {
                 real_T dirty_number_x = gaussian_noise(clean_numbers.x(), means.x(), variances.x());
@@ -660,6 +731,13 @@ namespace msr {
                 return dirty_number;
             }
 
+            /// <summary>
+            /// Function that decides whether noise is added to value
+            /// </summary>
+            /// <param name="clean_number">input clean value</param>
+            /// <param name="mean">Gaussian noise mean</param>
+            /// <param name="variance">Gaussian noise variance</param>
+            /// <returns>potentially noisy input value</returns>
             real_T apply_measurement_noise(real_T clean_number, real_T mean, real_T variance)
             {
                 if (activate_measurement_noise)
@@ -673,6 +751,13 @@ namespace msr {
                 }
             }
 
+            /// <summary>
+            /// Function that decides whether noise is added to 3D vector
+            /// </summary>            
+            /// <param name="clean_numbers">3D vector clean values</param>
+            /// <param name="means">3D vector of Gaussian noise means</param>
+            /// <param name="variances">3D vector of Gaussian noise variances</param>
+            /// <returns>potentially noisy 3D vector</returns>
             Vector3r apply_measurement_noise(Vector3r clean_number, Vector3r mean, Vector3r variance)
             {
                 if (activate_measurement_noise)
@@ -686,7 +771,9 @@ namespace msr {
                 }
             }
 
-            // Obtain all the data with Gaussian noise
+            /// <summary>
+            /// Function which potentially applies Gaussian noise to the vehicle states
+            /// </summary>
             void apply_measurement_noise_states()
             {
                 Vector3r position;
@@ -738,6 +825,11 @@ namespace msr {
                 }   
             }
 
+            /// <summary>
+            /// Function which computes the reference position given the current vehicle position
+            /// </summary>
+            /// <param name="position_input">current vehicle position</param>
+            /// <returns>current reference position</returns>
             Vector3r obtain_reference_position(Vector3r position_input)
             { 
                 real_T adaptive_lookahead = getAdaptiveLookahead();
@@ -747,7 +839,6 @@ namespace msr {
                 Vector3r current_position = position_input;
                 Vector3r actual_vect = current_position - previous_pos_ref;
                 real_T min_error = 1e-4;
-                //if (abs(current_position_ref.x() - previous_pos_ref.x()) < min_error && abs(current_position_ref.y() - previous_pos_ref.y()) < min_error && abs(current_position_ref.z() - previous_pos_ref.z()) < min_error && plot_data_collection_switch == true)
                 if (abs(current_position_ref.x() - previous_pos_ref.x()) < min_error && abs(current_position_ref.y() - previous_pos_ref.y()) < min_error && abs(current_position_ref.z() - previous_pos_ref.z()) < min_error)
                 {
                     if (pos_ref_counter > 10)
@@ -797,28 +888,24 @@ namespace msr {
                 }
             }
 
+            /// <summary>
+            /// Function which retrieves the yaw reference
+            /// </summary>
+            /// <returns>yaw reference</returns>
             real_T obtain_reference_yaw()
             {
                 real_T reference_yaw;
-                //if (current_heading.norm() > getDistanceAccuracy() && plot_data_collection_switch == true)
-                if (current_heading.norm() > getDistanceAccuracy() && false)
-                {
-                    reference_yaw = std::atan2(current_heading.y(), current_heading.x()) * 180 / M_PIf;
-                    reference_yaw = VectorMath::normalizeAngle(reference_yaw);
-                }
-                else
-                {
-                    reference_yaw = getYawRef();
-                }
+                reference_yaw = getYawRef();
                 return reference_yaw;
             }
 
-            // Method which describes the first block from which the acceleration and thrust reference values are obtained
+            /// <summary>
+            /// Method which describes the first block from which the acceleration and thrust reference values are obtained
+            /// </summary>
+            /// <returns>acceleration and thrust reference values</returns>
             a_thrust_ref position_velocity_pid()
             {
                 // Obtaining passed time
-                //TTimePoint cur = clock()->nowNanos();
-                //dt_real_integration = static_cast<real_T>((cur - last_time_integral) / 1.0E9);
                 TTimeDelta dt = clock()->updateSince(last_time_integral);
                 dt_real_integration = static_cast<real_T>(dt);
 
@@ -834,10 +921,6 @@ namespace msr {
                 Vector3r position = xyz_states;
                 Vector3r velocity = vxyz_states;
                 Vector3r pos_ref = obtain_reference_position(xyz_states);
-                //if (pos_ref_data.size() > 20)
-                //{
-                //    pos_ref.x() = position.x() - 2;
-                //}
 
                 if (dummy)
                 {
@@ -934,7 +1017,10 @@ namespace msr {
                 return a_thrust_ref{ a_ref , thrust_ref_fb };
             }
 
-            // Method used to obtain the ndi and omega_sum reference values
+            /// <summary>
+            /// Method used to obtain the ndi and omega_sum reference values
+            /// </summary>
+            /// <returns>ndi and sum of the rotor velocities reference values</returns>
             ndi_omegasumref ndiDirectlyFromA()
             {
                 a_thrust_ref position_velocity_pid_input = position_velocity_pid();
@@ -964,12 +1050,14 @@ namespace msr {
                 return ndi_omegasumref{ nd_i , omega_sum_ref };
             }
 
-            // Method that implements the Matlab block of heading controller_NDI
+            /// <summary>
+            /// Method that implements the Matlab block of heading controller_NDI
+            /// </summary>
+            /// <returns>reference derivative of the yaw rate</returns>
             real_T headingControllerNDI()
             {
                 // Obtaining block inputs
                 // The next line obtain yaw_ref from the AirSim outer loop
-                //real_T yaw_ref = getYawRef() * M_PIf / 180.0f;
                 real_T yaw_ref = obtain_reference_yaw() * M_PIf / 180.0f;
                 real_T roll = att_states.x();
                 real_T pitch = att_states.y();
@@ -979,12 +1067,6 @@ namespace msr {
                 Vector3r pos_ref = xyz_states_ref;
 
                 current_yaw_ref = yaw_ref;
-                //real_T xy_distance = sqrt((pos_ref.x() - position.x()) * (pos_ref.x() - position.x()) + (pos_ref.y() - position.y()) * (pos_ref.y() - position.y()));
-                //if (xy_distance < 0.1 && !(pos_ref.x()==0 && pos_ref.y() == 0 && yaw_ref == 0))
-                //{
-                //    yaw_ref = yaw;
-                //}
-
                 real_T yaw_ref_yaw_diff = 0.0f;
                 if (abs(yaw_ref-yaw) > M_PIf)
                 {
@@ -1056,6 +1138,10 @@ namespace msr {
                 return r_dot_cmd;
             }
 
+            /// <summary>
+            /// Method which computes the reference of the derivative of the angular rate and the sum of the rotational velocity of the propellers
+            /// </summary>
+            /// <returns>derivative of the angular rate and the sum of the rotational velocity of the propellers</returns>
             u_pqr_omega_ref attitude_controller()
             {
                 // Setting up the inputs
@@ -1104,7 +1190,11 @@ namespace msr {
                 current_pqr_ref.y() = pq_des_2;
                 return u_pqr_omega_ref{ omega_sum_ref, u_pqr };;
             }
-
+            
+            /// <summary>
+            /// Method that provides the commanded rotational speed of the propellers
+            /// </summary>
+            /// <returns>commanded propeller rotational speed</returns>
             Eigen::Matrix<real_T, 4, 1> INDIAllocator()
             {
                 // Retrieve all the inputs
@@ -1151,10 +1241,6 @@ namespace msr {
                         0.0f, 0.0f, 0.0f, 0.0f,
                         signr * -G2_31, signr * G2_32, signr * -G2_33, signr * G2_34,
                         0.0f, 0.0f, 0.0f, 0.0f;
-                    //G2 << 0.000036655, -0.000036655, 0.000036655, -0.000036655,
-                    //    0.0f, 0.0f, 0.0f, 0.0f,
-                    //    signr * -0.0027, signr * 0.0027, signr * -0.0027, signr * 0.0027,
-                    //    0.0f, 0.0f, 0.0f, 0.0f;
                     G2 = G2 / 1000.0f;
                     du = (G / 1000.0f + G2).inverse() * (dnu + G2 * du_last) * 2.0f * M_PIf / 60.0f;
                 }
@@ -1196,7 +1282,17 @@ namespace msr {
                 return w_cmd;
             }
 
-            // Actuator dynamics
+            /// <summary>
+            /// Method that applies the actuator dynamics to the commanded rotational velocities of the rotors
+            /// </summary>
+            /// <param name="previous">object that contains the previous kinematic states</param>
+            /// <param name="dt_real">time step</param>
+            /// <param name="current_simulation_time">current simulation time</param>
+            /// <param name="damaged_mass_forces">current value of the mass forces lost due to propeller damage</param>
+            /// <param name="damaged_mass_moments">current value of the mass moments lost due to propeller damage</param>
+            /// <param name="damaged_aero_forces">current value of the aero forces lost due to propeller damage</param>
+            /// <param name="damaged_aero_moments">current value of the aero moments lost due to propeller damage</param>
+            /// <returns></returns>
             virtual std::vector<real_T> actuator_dyn(const Kinematics::State& previous, const real_T& dt_real, const real_T& current_simulation_time, const Vector3r& damaged_mass_forces, const Vector3r& damaged_mass_moments, const Vector3r& damaged_aero_forces, const Vector3r& damaged_aero_moments) override
             {
                 previous_ = previous;
@@ -1248,7 +1344,9 @@ namespace msr {
                 return omega;
             }
 
-            // Function that calls all methods that collect data
+            /// <summary>
+            /// Function that calls all methods that collect data
+            /// </summary>
             virtual void collectAllData() override
             {
                 local_IMU_data = getImuData("");
@@ -1324,7 +1422,7 @@ namespace msr {
                 return pos_ref_data;
             }
 
-            // Methods related to the data gathering of position reference
+            // Methods related to the data gathering of position error
             void storePosErrorData() override
             {
                 if (pos_error_activate_store && plot_data_collection_switch) {
@@ -1613,7 +1711,7 @@ namespace msr {
                 return thrust_ref_data;
             }
 
-            // Methods related to the data gathering of reference thrust 
+            // Methods related to the data gathering of actuator rotational speed 
             void storeOmegasData() override
             {
                 if (pqr_ref_activate_store && plot_data_collection_switch) {
@@ -1952,7 +2050,6 @@ namespace msr {
             {
                 Camera_activate_store = activation;
                 Camera_sample_rate = sample_rate;
-                //unused(request);
                 Camera_request = request;
                 Camera_api = api;
             }
@@ -2299,6 +2396,8 @@ namespace msr {
                 PWMs[3] = current_omegas[3] / w_max;
                 return PWMs;
             }
+
+            // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             virtual size_t getActuatorCount() const override
             {
@@ -2711,31 +2810,6 @@ namespace msr {
             real_T integrator_thrust_ref_dot_previous = 0;
 
             // Parameters for the PID block
-            //real_T vel_P = 1.2;
-            //real_T vel_D = 0.1;
-            //real_T pos_P = 1.5;
-            //real_T pos_I = 0;
-            //real_T pos_D = 1.3;
-            //real_T thrust_P = 8.;
-            //real_T thrust_I = 0.5;
-            //real_T psi_P = 20.;
-            //real_T r_P = 40.;
-
-            //real_T vel_P = 0.6;
-            //real_T vel_D = 0.;
-            //real_T vel_ff = 0.;
-            //real_T pos_P = 1.5;
-            //real_T pos_I = 0.;
-            //real_T pos_D = 0.9;
-            //real_T thrust_P = 4.;
-            //real_T thrust_I = 0.;
-            //real_T thrust_D = 2.;
-            //real_T psi_P = 5.;
-            //real_T psi_D = 1.;
-            //real_T r_P = 30.;
-            //real_T r_D = 30.;
-
-
             real_T vel_P = 0.6;
             real_T vel_D = 0.;
             real_T vel_ff = 0.;
@@ -2805,16 +2879,6 @@ namespace msr {
             real_T theta_dot = 0;
 
             // Variables for the attitude controller block
-            //Vector3r primary_axis = Vector3r(0, 0, -1);
-            //real_T kx = -10.;
-            //real_T ky = -10.;
-            //real_T kp_gain = -40.;
-            //real_T kq_gain = -40.;
-            //real_T kp_dot_gain = 2.;
-            //real_T kq_dot_gain = 2.;
-            //real_T pq_des_dot_1 = 0.;
-            //real_T pq_des_dot_2 = 0.;
-
             Vector3r primary_axis = Vector3r(0, 0, -1);
             real_T kx = -10.;
             real_T ky = -10.;
