@@ -129,6 +129,8 @@ public:
         }
     };
 
+    // ----------------------------------------------------------------------------------------------------------------------------------
+    // The next functions are used for the scoping of simulation data or the injection of in-flight actuator failure
     struct DamageCoefficients
     {
         float front_right;

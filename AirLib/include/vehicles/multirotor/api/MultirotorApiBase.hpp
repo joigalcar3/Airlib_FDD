@@ -95,6 +95,7 @@ public: //these APIs uses above low level APIs
     virtual void setPlotDataCollectionActivation(bool activation);
     virtual void setActivation(bool activation, float sample_rate, std::string data_name);
 
+    // Function signatures for the scoping of simulation data
     virtual void setPosRefActivation(bool activation, float sample_rate);
     virtual void cleanPosRefStoredData();
     virtual PosRefStoredData getPosRefStoredDataVec();
@@ -298,16 +299,19 @@ protected: //utility methods
         return getKinematicsEstimated().pose.orientation;
     }
 
+    // Function to obtain the vehicle's reference position
     virtual Vector3r getPosRef() const
     {
         return next_path_loc_obj.position;
     }
 
+    // Function to obtain the vehicle's reference yaw angle
     virtual real_T getYawRef() const
     {
         return yaw_ref_deg;
     }
 
+    // Function to set the vehicle's reference yaw angle
     virtual void setYawRef(real_T yaw_angle_ref)
     {
         yaw_ref_deg = yaw_angle_ref;

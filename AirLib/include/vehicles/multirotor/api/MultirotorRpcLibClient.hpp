@@ -179,6 +179,7 @@ public:
     LockedPropellers getLockedPropellers(const std::string& vehicle_name = "");
     DamageCoefficients getLockedPropellerCoefficients(const std::string& vehicle_name = "");
     DamageCoefficients getMotorPWMs(const std::string& vehicle_name = "");
+    // ----------------------------------------------------------------------------------------------------------------------------------
 
     MultirotorRpcLibClient* moveByVelocityBodyFrameAsync(float vx, float vy, float vz, float duration,
         DrivetrainType drivetrain = DrivetrainType::MaxDegreeOfFreedom, const YawMode& yaw_mode = YawMode(), const std::string& vehicle_name = "");

@@ -129,7 +129,7 @@ RpcLibServerBase::RpcLibServerBase(ApiProvider* api_provider, const std::string&
     pimpl_->server.bind("isApiControlEnabled", [&](const std::string& vehicle_name) -> bool { 
         return getVehicleApi(vehicle_name)->isApiControlEnabled();
     });
-    //ranowashere
+    
     pimpl_->server.bind("armDisarm", [&](bool arm, const std::string& vehicle_name) -> bool { 
         return getVehicleApi(vehicle_name)->armDisarm(arm);
     });

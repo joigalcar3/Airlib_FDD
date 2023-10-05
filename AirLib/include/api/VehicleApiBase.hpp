@@ -83,7 +83,9 @@ public:
     {
         throw VehicleCommandNotImplementedException("collectAllData API is not supported for this vehicle");
     }
-
+        
+    // ----------------------------------------------------------------------------------------------------------------
+    // The next functions are declarations used in the SimpleFlightApi.hpp file
     virtual std::vector<real_T> actuator_dyn(const Kinematics::State& previous, const real_T& dt_real, const real_T& current_time, const Vector3r& damaged_mass_forces, const Vector3r& damaged_mass_moments, const Vector3r& damaged_aero_forces, const Vector3r& damaged_aero_moments)
     {
         unused(previous);
@@ -839,7 +841,7 @@ public:
     {
         throw VehicleCommandNotImplementedException("getActuatorCount API is not supported for this vehicle");
     }
-
+    // -------------------------------------------------------------------------------------------------------------------------------------------------
     virtual void getStatusMessages(std::vector<std::string>& messages)
     {
         unused(messages);

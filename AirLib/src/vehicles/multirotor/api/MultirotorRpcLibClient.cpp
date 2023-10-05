@@ -581,12 +581,7 @@ DamageCoefficients MultirotorRpcLibClient::getMotorPWMs(const std::string& vehic
     return static_cast<rpc::client*>(getClient())->call("getMotorPWMs", vehicle_name).as<MultirotorRpcLibAdaptors::DamageCoefficients>().to();
 }
 
-//bool MultirotorRpcLibClient::setSafety(SafetyEval::SafetyViolationType enable_reasons, float obs_clearance, SafetyEval::ObsAvoidanceStrategy obs_startegy,
-//    float obs_avoidance_vel, const Vector3r& origin, float xy_length, float max_z, float min_z, const std::string& vehicle_name)
-//{
-//    return static_cast<rpc::client*>(getClient())->call("setSafety", static_cast<uint>(enable_reasons), obs_clearance, obs_startegy,
-//        obs_avoidance_vel, MultirotorRpcLibAdaptors::Vector3r(origin), xy_length, max_z, min_z, vehicle_name).as<bool>();
-//}
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 MultirotorRpcLibClient* MultirotorRpcLibClient::moveByVelocityBodyFrameAsync(float vx, float vy, float vz, float duration,

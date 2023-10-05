@@ -83,7 +83,10 @@ bool MultirotorApiBase::dummyprinter(float numerito)
         return false;
 }
 
-
+// --------------------------------------------------------------------------------------------------------------------------------------------------------
+// The following functions connect the commands coming from the client with the corresponding functions in SimpleFlightApi.hpp. 
+// Additionally, it interacts with the attributes in MultirotorApiBase.hpp.
+// It basically connects the Python code with the C++ functions
 // Change the path location object
 void MultirotorApiBase::setNextPathLocObj(Pose pose)
 {
@@ -220,7 +223,7 @@ VelRefStoredData MultirotorApiBase::getVelRefStoredDataVec()
     return dc;
 }
 
-// Methods related to the reference position data gathering
+// Methods related to the velocity data gathering
 void MultirotorApiBase::setVelActivation(bool activation, float sample_rate)
 {
     setVelAct(activation, sample_rate);
@@ -258,7 +261,6 @@ void MultirotorApiBase::setAccRefActivation(bool activation, float sample_rate)
 void MultirotorApiBase::cleanAccRefStoredData()
 {
     cleanAccRefSD();
-    //cleanVelRefSD();
 }
 
 AccRefStoredData MultirotorApiBase::getAccRefStoredDataVec()
@@ -337,7 +339,7 @@ PqrRefStoredData MultirotorApiBase::getPqrRefStoredDataVec()
     return dc;
 }
 
-// Methods related to the reference rotational rates data gathering
+// Methods related to the rotational rates data gathering
 void MultirotorApiBase::setPqrActivation(bool activation, float sample_rate)
 {
     setPqrAct(activation, sample_rate);
@@ -366,7 +368,7 @@ PqrStoredData MultirotorApiBase::getPqrStoredDataVec()
     return dc;
 }
 
-// Methods related to the reference rotational rates data gathering
+// Methods related to the reference thrust data gathering
 void MultirotorApiBase::setThrustRefActivation(bool activation, float sample_rate)
 {
     setThrustRefAct(activation, sample_rate);
@@ -837,7 +839,7 @@ BarometerStoredData MultirotorApiBase::getBarometerStoredDataVec()
     return dc;
 }
 
-// Methods related to the barometer data gathering
+// Methods related to the magnetometer data gathering
 void MultirotorApiBase::setMagnetometerActivation(bool activation, float sample_rate)
 {
     setMagnetometerAct(activation, sample_rate);
@@ -997,7 +999,6 @@ void MultirotorApiBase::setLockedPropellerCoefficients(float new_coeff_1, float 
 
 DamageCoefficients MultirotorApiBase::getDamageCoefficients()
 {
-    //DamageCoefficients dc = DamageCoefficients(1.0, 1.0, 1.0, 1.0);
     float* p;
     p = getDamageCoeff();
     DamageCoefficients dc = DamageCoefficients(*(p), *(p+1), *(p+2), *(p+3));
@@ -1027,6 +1028,7 @@ DamageCoefficients MultirotorApiBase::getMotorPWMs()
     DamageCoefficients dc = DamageCoefficients(*(p), *(p + 1), *(p + 2), *(p + 3));
     return dc;
 }
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 bool MultirotorApiBase::moveByVelocityBodyFrame(float vx, float vy, float vz, float duration, DrivetrainType drivetrain, const YawMode& yaw_mode)
 {
@@ -1373,8 +1375,6 @@ bool MultirotorApiBase::moveOnPath(const vector<Vector3r>& path, float velocity,
             if (overshoot)
                 Utils::log(Utils::stringf("overshoot=%f", overshoot));
         }
-        //else
-        //    Utils::logMessage("goal_dist was negative: %f", goal_dist);
 
         //compute next target on path
         overshoot = setNextPathPosition(path3d, path_segs, cur_path_loc_obj, lookahead + lookahead_error, next_path_loc_obj);
@@ -1682,7 +1682,6 @@ void MultirotorApiBase::moveToPathPosition(const Vector3r& dest, float velocity,
         velocity_vect = Vector3r::Zero();
     else if (cur_dest_norm >= expected_dist) {
         velocity_vect = (cur_dest / cur_dest_norm) * velocity;
-        //Utils::logMessage("velocity_vect=%s", VectorMath::toString(velocity_vect).c_str());
     }
     else { //cur dest is too close than the distance we would travel
            //generate velocity vector that is same size as cur_dest_norm / command period

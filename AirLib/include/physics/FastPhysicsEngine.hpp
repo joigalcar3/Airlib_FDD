@@ -112,7 +112,6 @@ namespace msr {
             {
                 TTimeDelta dt = clock()->updateSince(body.last_kinematics_time);
 
-                body.lock();
                 if (initial_time == -1)
                 {
                     previous = body.getKinematics();

@@ -125,7 +125,7 @@ public:
     VehicleStateType default_vehicle_state = VehicleStateType::Inactive;
     uint64_t api_goal_timeout = 60; //milliseconds
     ControllerType controller_type = ControllerType::Cascade;
-    bool gains_changed;
+    bool gains_changed;  // whether the default gains have been modified by the user
 };
 
 

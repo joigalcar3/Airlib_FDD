@@ -33,9 +33,7 @@ protected:
 
         // Use connection_info_.model for the model name, see Px4MultiRotorParams for example
 
-        // Only Generic for now
-        //setupFrameGenericQuad(params);
-        //setupFrameBB2(params);
+        // What drone parameters are to be simulated
         setupFrameBB2Leon(params);
     }
 

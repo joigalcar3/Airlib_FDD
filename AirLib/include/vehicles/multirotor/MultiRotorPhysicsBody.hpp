@@ -78,7 +78,9 @@ public:
                 vehicle_api_->getActuation(rotor_index));
         }
     }
-
+    // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // The next functions are used to pass information to the FastPhysicsEngine.hpp, mostly from the SimpleFlightApi.hpp or
+    // to enable the FastPhysicsEngine.hpp file to call functions that reside in the SimpleFlightApi.hpp
     std::vector<real_T> getPWMrotors() override
     {
         std::vector<real_T> PWMs;
@@ -134,7 +136,7 @@ public:
     {
         vehicle_api_->storeCameraData();
     }
-
+    // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //sensor getter
     const SensorCollection& getSensors() const
     {

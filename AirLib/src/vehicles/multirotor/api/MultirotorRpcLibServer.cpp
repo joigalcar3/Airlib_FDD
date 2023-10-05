@@ -554,6 +554,7 @@ MultirotorRpcLibServer::MultirotorRpcLibServer(ApiProvider* api_provider, string
         bind("getMotorPWMs", [&](const std::string& vehicle_name) -> MultirotorRpcLibAdaptors::DamageCoefficients {
         return MultirotorRpcLibAdaptors::DamageCoefficients(getVehicleApi(vehicle_name)->getMotorPWMs());
             });
+    // --------------------------------------------------------------------------------------------------------------------------------------------------------
 
     (static_cast<rpc::server*>(getServer()))->
         bind("moveByVelocityBodyFrame", [&](float vx, float vy, float vz, float duration, DrivetrainType drivetrain,
