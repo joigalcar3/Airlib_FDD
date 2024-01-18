@@ -110,7 +110,7 @@ please consider citing our research work below when using this repository.
 
 
     @inbook{deAlvearCardenasFDD2024,
-        author = {José Ignacio de Alvear Cárdenas  and Coen C. de Visser},
+        author = {José Ignacio de Alvear Cárdenas and Coen C. de Visser},
         title = {Unreal Success: Vision-Based UAV Fault Detection and Diagnosis Framework},
         booktitle = {AIAA SCITECH 2024 Forum},
         chapter = {},
